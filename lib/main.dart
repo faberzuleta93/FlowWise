@@ -1,0 +1,139 @@
+import 'package:flutter/material.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/colors.dart';
+import 'core/theme/typography.dart';
+import 'screens/home/home_screen.dart';
+import 'screens/movimientos/movimientos_screen.dart';
+import 'screens/informes/informes_screen.dart';
+import 'screens/perfil/perfil_screen.dart';
+import 'screens/registro/registro_screen.dart';
+
+void main() {
+  runApp(const FlowWiseApp());
+}
+
+class FlowWiseApp extends StatelessWidget {
+  const FlowWiseApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'FlowWise',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.dark(),
+      home: const MainNavigator(),
+    );
+  }
+}
+
+class MainNavigator extends StatefulWidget {
+  const MainNavigator({super.key});
+
+  @override
+  State<MainNavigator> createState() => _MainNavigatorState();
+}
+
+class _MainNavigatorState extends State<MainNavigator> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = const [
+    HomeScreen(),
+    MovimientosScreen(),
+    InformesScreen(),
+    PerfilScreen(),
+  ];
+
+  void _abrirRegistro() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const RegistroScreen(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_currentIndex],
+      bottomNavigationBar: _buildBottomNav(),
+      floatingActionButton: _buildFAB(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  Widget _buildFAB() {
+    return GestureDetector(
+      onTap: _abrirRegistro,
+      child: Container(
+        width: 58,
+        height: 58,
+        decoration: BoxDecoration(
+          color: AppColors.accent,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.accent.withValues(alpha: 0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.add_rounded,
+          color: AppColors.midnight,
+          size: 30,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return BottomAppBar(
+      color: AppColors.surface,
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      child: SizedBox(
+        height: 60,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(0, Icons.home_rounded, 'Inicio'),
+            _buildNavItem(1, Icons.receipt_long_rounded, 'Movimientos'),
+            const SizedBox(width: 58),
+            _buildNavItem(2, Icons.bar_chart_rounded, 'Informes'),
+            _buildNavItem(3, Icons.person_rounded, 'Perfil'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final activo = _currentIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      child: Container(
+        color: Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: activo ? AppColors.accent : AppColors.textSecondary,
+              size: 24,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: AppTypography.micro(
+                color: activo ? AppColors.accent : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
