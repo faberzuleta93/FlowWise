@@ -1,36 +1,93 @@
+import 'month_summary.dart';
+import 'liquidity_state.dart';
+import 'budget_state.dart';
+import 'wealth_state.dart';
+import 'financial_health.dart';
+import 'financial_momentum.dart';
+import 'financial_decision.dart';
+import 'goal_progress.dart';
+import 'upcoming_obligation.dart';
+import 'financial_movement.dart';
+
 class FinancialState {
-  // ── ESTADO DEL MES ────────────────────────────
   final MonthSummary monthSummary;
-
-  // ── LIQUIDEZ ──────────────────────────────────
   final LiquidityState liquidity;
-
-  // ── PRESUPUESTO 50/30/20 ──────────────────────
   final BudgetState budget;
-
-  // ── ESTADO FINANCIERO (patrimonio) ────────────
   final WealthState wealth;
-
-  // ── SALUD FINANCIERA (base para gamificación) ─
-  final FinancialHealth health; // MEJORA 1
-
-  // ── MOMENTUM (¿cómo viene el usuario?) ────────
-  final FinancialMomentum momentum; // MEJORA 5
-
-  // ── OBLIGACIONES ──────────────────────────────
+  final FinancialHealth health;
+  final FinancialMomentum momentum;
   final List<UpcomingObligation> obligations;
-
-  // ── METAS ─────────────────────────────────────
   final List<GoalProgress> goals;
-
-  // ── MOVIMIENTOS RECIENTES ─────────────────────
   final List<FinancialMovement> recentMovements;
-
-  // ── DECISIONES (no recomendaciones) ──────────
-  final List<FinancialDecision> decisions; // MEJORA 2
-
-  // ── METADATA ──────────────────────────────────
+  final List<FinancialDecision> decisions;
   final DateTime calculatedAt;
   final int month;
   final int year;
+
+  const FinancialState({
+    required this.monthSummary,
+    required this.liquidity,
+    required this.budget,
+    required this.wealth,
+    required this.health,
+    required this.momentum,
+    required this.obligations,
+    required this.goals,
+    required this.recentMovements,
+    required this.decisions,
+    required this.calculatedAt,
+    required this.month,
+    required this.year,
+  });
+
+  factory FinancialState.initial() {
+    final now = DateTime.now();
+    return FinancialState(
+      monthSummary: MonthSummary.empty(),
+      liquidity: LiquidityState.empty(),
+      budget: BudgetState.empty(),
+      wealth: WealthState.empty(),
+      health: FinancialHealth.initial(),
+      momentum: FinancialMomentum.initial(),
+      obligations: [],
+      goals: [],
+      recentMovements: [],
+      decisions: [],
+      calculatedAt: now,
+      month: now.month,
+      year: now.year,
+    );
+  }
+
+  FinancialState copyWith({
+    MonthSummary? monthSummary,
+    LiquidityState? liquidity,
+    BudgetState? budget,
+    WealthState? wealth,
+    FinancialHealth? health,
+    FinancialMomentum? momentum,
+    List<UpcomingObligation>? obligations,
+    List<GoalProgress>? goals,
+    List<FinancialMovement>? recentMovements,
+    List<FinancialDecision>? decisions,
+    DateTime? calculatedAt,
+    int? month,
+    int? year,
+  }) {
+    return FinancialState(
+      monthSummary: monthSummary ?? this.monthSummary,
+      liquidity: liquidity ?? this.liquidity,
+      budget: budget ?? this.budget,
+      wealth: wealth ?? this.wealth,
+      health: health ?? this.health,
+      momentum: momentum ?? this.momentum,
+      obligations: obligations ?? this.obligations,
+      goals: goals ?? this.goals,
+      recentMovements: recentMovements ?? this.recentMovements,
+      decisions: decisions ?? this.decisions,
+      calculatedAt: calculatedAt ?? this.calculatedAt,
+      month: month ?? this.month,
+      year: year ?? this.year,
+    );
+  }
 }

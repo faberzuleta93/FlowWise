@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/colors.dart';
 import 'core/theme/typography.dart';
+import 'data/repositories/memory_movement_repository.dart';
+import 'domain/financialCore/engine/financial_engine_v1.dart';
+import 'state/financial_state_notifier.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/movimientos/movimientos_screen.dart';
 import 'screens/informes/informes_screen.dart';
@@ -9,11 +12,24 @@ import 'screens/perfil/perfil_screen.dart';
 import 'screens/registro/registro_screen.dart';
 
 void main() {
-  runApp(const FlowWiseApp());
+  // Composición del Core Financiero
+  final repository = MemoryMovementRepository();
+  final engine = FinancialEngineV1(movementRepository: repository);
+  final financialNotifier = FinancialStateNotifier(engine: engine);
+
+  // Inicializar al arrancar
+  financialNotifier.initialize();
+
+  runApp(FlowWiseApp(financialNotifier: financialNotifier));
 }
 
 class FlowWiseApp extends StatelessWidget {
-  const FlowWiseApp({super.key});
+  final FinancialStateNotifier financialNotifier;
+
+  const FlowWiseApp({
+    super.key,
+    required this.financialNotifier,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +37,18 @@ class FlowWiseApp extends StatelessWidget {
       title: 'FlowWise',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
-      home: const MainNavigator(),
+      home: MainNavigator(financialNotifier: financialNotifier),
     );
   }
 }
 
 class MainNavigator extends StatefulWidget {
-  const MainNavigator({super.key});
+  final FinancialStateNotifier financialNotifier;
+
+  const MainNavigator({
+    super.key,
+    required this.financialNotifier,
+  });
 
   @override
   State<MainNavigator> createState() => _MainNavigatorState();
@@ -36,19 +57,27 @@ class MainNavigator extends StatefulWidget {
 class _MainNavigatorState extends State<MainNavigator> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    MovimientosScreen(),
-    InformesScreen(),
-    PerfilScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomeScreen(financialNotifier: widget.financialNotifier),
+      const MovimientosScreen(),
+      const InformesScreen(),
+      const PerfilScreen(),
+    ];
+  }
 
   void _abrirRegistro() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const RegistroScreen(),
+      builder: (_) => RegistroScreen(
+        financialNotifier: widget.financialNotifier,
+      ),
     );
   }
 
@@ -119,18 +148,14 @@ class _MainNavigatorState extends State<MainNavigator> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: activo ? AppColors.accent : AppColors.textSecondary,
-              size: 24,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: AppTypography.micro(
+            Icon(icon,
                 color: activo ? AppColors.accent : AppColors.textSecondary,
-              ),
-            ),
+                size: 24),
+            const SizedBox(height: 2),
+            Text(label,
+                style: AppTypography.micro(
+                    color:
+                        activo ? AppColors.accent : AppColors.textSecondary)),
           ],
         ),
       ),

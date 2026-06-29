@@ -1,16 +1,11 @@
-import 'package:flowwise/domain/models/budget_state.dart';
-import 'package:flowwise/domain/models/financial_decision.dart';
-import 'package:flowwise/domain/models/financial_momentum.dart';
-import 'package:flowwise/domain/models/financial_state.dart';
-import 'package:flowwise/domain/models/goal_progress.dart';
-import 'package:flowwise/domain/models/liquidity_state.dart';
-import 'package:flowwise/domain/models/upcoming_obligation.dart';
-
-abstract class DecisionEngine {
-  List<FinancialDecision> generate({
-    required FinancialState state,
-  });
-}
+import '../../models/financial_state.dart';
+import '../../models/financial_decision.dart';
+import '../../models/budget_state.dart';
+import '../../models/liquidity_state.dart';
+import '../../models/goal_progress.dart';
+import '../../models/upcoming_obligation.dart';
+import '../../models/financial_momentum.dart';
+import 'decision_engine.dart';
 
 class DecisionEngineV1 implements DecisionEngine {
   @override
@@ -25,7 +20,6 @@ class DecisionEngineV1 implements DecisionEngine {
     _evaluateGoals(state.goals, state.liquidity, decisions);
     _evaluateMomentum(state.momentum, decisions);
 
-    // Ordenar por prioridad
     decisions.sort((a, b) => a.priority.index.compareTo(b.priority.index));
 
     return decisions;
@@ -57,6 +51,18 @@ class DecisionEngineV1 implements DecisionEngine {
         generatedAt: DateTime.now(),
       ));
     }
+    if (budget.lifestyle.status == BlockStatus.warning) {
+      decisions.add(FinancialDecision(
+        id: 'budget_lifestyle_warning',
+        title: 'Estás cerca del límite',
+        context:
+            'Llevas el ${(budget.lifestyle.percentage * 100).toInt()}% de tu presupuesto de estilo de vida',
+        priority: DecisionPriority.medium,
+        category: DecisionCategory.budget,
+        actionType: DecisionActionType.reviewBudget,
+        generatedAt: DateTime.now(),
+      ));
+    }
   }
 
   void _evaluateLiquidity(
@@ -71,9 +77,7 @@ class DecisionEngineV1 implements DecisionEngine {
         priority: DecisionPriority.medium,
         category: DecisionCategory.liquidity,
         actionType: DecisionActionType.assignMoney,
-        actionPayload: {
-          'amount': liquidity.unassignedMoney,
-        },
+        actionPayload: {'amount': liquidity.unassignedMoney},
         generatedAt: DateTime.now(),
       ));
     }
@@ -83,18 +87,18 @@ class DecisionEngineV1 implements DecisionEngine {
     List<UpcomingObligation> obligations,
     List<FinancialDecision> decisions,
   ) {
-    for (final obligation in obligations) {
-      if (obligation.daysUntilDue <= 3) {
+    for (final o in obligations) {
+      if (o.daysUntilDue <= 3) {
         decisions.add(FinancialDecision(
-          id: 'obligation_urgent_${obligation.id}',
-          title: 'Paga ${obligation.name}',
-          context: 'Vence en ${obligation.daysUntilDue} días',
+          id: 'obligation_urgent_${o.id}',
+          title: 'Paga ${o.name}',
+          context: 'Vence en ${o.daysUntilDue} días',
           priority: DecisionPriority.critical,
           category: DecisionCategory.credit,
           actionType: DecisionActionType.payCredit,
-          actionPayload: {'obligationId': obligation.id},
+          actionPayload: {'obligationId': o.id},
           generatedAt: DateTime.now(),
-          expiresAt: obligation.dueDate,
+          expiresAt: o.dueDate,
         ));
       }
     }

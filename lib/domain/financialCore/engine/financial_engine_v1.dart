@@ -1,13 +1,32 @@
+import '../../../domain/repositories/movement_repository.dart';
+import '../../models/financial_state.dart';
+import '../rules/financial_rules_engine.dart';
+import '../decisions/decision_engine.dart';
+import '../decisions/decision_engine_v1.dart' as dec;
+import 'financial_engine.dart';
+
 class FinancialEngineV1 implements FinancialEngine {
   final MovementRepository _movementRepository;
   final FinancialRulesEngine _rules;
-  final DecisionEngine _decisionEngine; // MEJORA 2
+  final DecisionEngine _decisionEngine;
 
   FinancialEngineV1({
     required MovementRepository movementRepository,
   })  : _movementRepository = movementRepository,
         _rules = FinancialRulesEngine(),
-        _decisionEngine = DecisionEngineV1();
+        _decisionEngine = dec.DecisionEngineV1();
+
+  @override
+  Future<FinancialState> process({
+    required FinancialEvent event,
+    required FinancialState currentState,
+  }) async {
+    await _persistEvent(event);
+    return recalculate(
+      month: currentState.month,
+      year: currentState.year,
+    );
+  }
 
   @override
   Future<FinancialState> recalculate({
@@ -16,35 +35,44 @@ class FinancialEngineV1 implements FinancialEngine {
   }) async {
     final movements = await _movementRepository.getByMonth(year, month);
 
-    // 1. Calcular estado financiero
     final monthSummary = _rules.calculateMonthSummary(movements);
-    final budgetState = _rules.calculateBudget(movements, monthSummary);
-    final liquidity = _rules.calculateLiquidity(movements, budgetState);
+    final budget = _rules.calculateBudget(movements, monthSummary);
+    final liquidity = _rules.calculateLiquidity(movements, budget);
     final wealth = _rules.calculateWealth(movements);
-    final health = _rules.calculateHealth(monthSummary, budgetState);
+    final health = _rules.calculateHealth(monthSummary, budget);
     final momentum = _rules.calculateMomentum(monthSummary);
 
-    // 2. Construir estado parcial para el DecisionEngine
     final partialState = FinancialState(
       month: month,
       year: year,
       monthSummary: monthSummary,
       liquidity: liquidity,
-      budget: budgetState,
+      budget: budget,
       wealth: wealth,
       health: health,
       momentum: momentum,
       obligations: [],
       goals: [],
       recentMovements: movements.take(5).toList(),
-      decisions: [], // vacío aún
+      decisions: [],
       calculatedAt: DateTime.now(),
     );
 
-    // 3. DecisionEngine consume el estado y produce decisiones
-    final decisions = _decisionEngine.generate(state: partialState); // MEJORA 6
+    final decisions = _decisionEngine.generate(state: partialState);
 
-    // 4. Estado final con decisiones incluidas
     return partialState.copyWith(decisions: decisions);
+  }
+
+  Future<void> _persistEvent(FinancialEvent event) async {
+    switch (event) {
+      case IncomeRegistered(:final movement):
+        await _movementRepository.save(movement);
+      case ExpenseRegistered(:final movement):
+        await _movementRepository.save(movement);
+      case TransferRegistered(:final movement):
+        await _movementRepository.save(movement);
+      default:
+        break;
+    }
   }
 }

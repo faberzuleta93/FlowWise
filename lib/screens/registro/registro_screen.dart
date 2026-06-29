@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../domain/models/financial_movement.dart';
-import '../../data/repositories/memory_movement_repository.dart';
+import '../../state/financial_state_notifier.dart';
 import '../../presentation/registro/movement_form_viewmodel.dart';
 import '../../presentation/registro/movement_form_screen.dart';
 
 class RegistroScreen extends StatelessWidget {
-  const RegistroScreen({super.key});
+  final FinancialStateNotifier financialNotifier;
 
-  // Repositorio compartido — en el futuro vendrá de un Provider
-  static final _repository = MemoryMovementRepository();
+  const RegistroScreen({
+    super.key,
+    required this.financialNotifier,
+  });
 
   void _abrirFormulario(BuildContext context, MovementType type) {
     final vm = MovementFormViewModel(
-      repository: _repository,
+      financialNotifier: financialNotifier,
       type: type,
     );
     showModalBottomSheet(

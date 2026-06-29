@@ -1,13 +1,13 @@
 enum CategoryType { ingreso, gasto }
 
-enum BudgetBlock { esenciales, estiloDeVida, futuro }
+enum BudgetBlockType { esenciales, estiloDeVida, futuro }
 
 class BudgetCategory {
   final String id;
   final String name;
   final String emoji;
   final CategoryType type;
-  final BudgetBlock block;
+  final BudgetBlockType block;
   final bool isDefault;
   // Preparado para Premium: color, orden, subcategorías
   final int sortOrder;
@@ -31,7 +31,7 @@ class DefaultCategories {
       name: 'Vivienda',
       emoji: '🏠',
       type: CategoryType.gasto,
-      block: BudgetBlock.esenciales,
+      block: BudgetBlockType.esenciales,
       sortOrder: 1,
     ),
     BudgetCategory(
@@ -39,7 +39,7 @@ class DefaultCategories {
       name: 'Mercado',
       emoji: '🛒',
       type: CategoryType.gasto,
-      block: BudgetBlock.esenciales,
+      block: BudgetBlockType.esenciales,
       sortOrder: 2,
     ),
     BudgetCategory(
@@ -47,7 +47,7 @@ class DefaultCategories {
       name: 'Transporte',
       emoji: '🚗',
       type: CategoryType.gasto,
-      block: BudgetBlock.esenciales,
+      block: BudgetBlockType.esenciales,
       sortOrder: 3,
     ),
     BudgetCategory(
@@ -55,7 +55,7 @@ class DefaultCategories {
       name: 'Salud',
       emoji: '💊',
       type: CategoryType.gasto,
-      block: BudgetBlock.esenciales,
+      block: BudgetBlockType.esenciales,
       sortOrder: 4,
     ),
     BudgetCategory(
@@ -63,7 +63,7 @@ class DefaultCategories {
       name: 'Restaurantes',
       emoji: '🍔',
       type: CategoryType.gasto,
-      block: BudgetBlock.estiloDeVida,
+      block: BudgetBlockType.estiloDeVida,
       sortOrder: 5,
     ),
     BudgetCategory(
@@ -71,7 +71,7 @@ class DefaultCategories {
       name: 'Entretenimiento',
       emoji: '🎭',
       type: CategoryType.gasto,
-      block: BudgetBlock.estiloDeVida,
+      block: BudgetBlockType.estiloDeVida,
       sortOrder: 6,
     ),
     BudgetCategory(
@@ -79,7 +79,7 @@ class DefaultCategories {
       name: 'Ropa',
       emoji: '👗',
       type: CategoryType.gasto,
-      block: BudgetBlock.estiloDeVida,
+      block: BudgetBlockType.estiloDeVida,
       sortOrder: 7,
     ),
     BudgetCategory(
@@ -87,7 +87,7 @@ class DefaultCategories {
       name: 'Suscripciones',
       emoji: '📱',
       type: CategoryType.gasto,
-      block: BudgetBlock.estiloDeVida,
+      block: BudgetBlockType.estiloDeVida,
       sortOrder: 8,
     ),
     BudgetCategory(
@@ -95,7 +95,7 @@ class DefaultCategories {
       name: 'Ahorro',
       emoji: '🏦',
       type: CategoryType.gasto,
-      block: BudgetBlock.futuro,
+      block: BudgetBlockType.futuro,
       sortOrder: 9,
     ),
     BudgetCategory(
@@ -103,7 +103,7 @@ class DefaultCategories {
       name: 'Inversión',
       emoji: '📈',
       type: CategoryType.gasto,
-      block: BudgetBlock.futuro,
+      block: BudgetBlockType.futuro,
       sortOrder: 10,
     ),
     BudgetCategory(
@@ -111,7 +111,7 @@ class DefaultCategories {
       name: 'Educación',
       emoji: '📚',
       type: CategoryType.gasto,
-      block: BudgetBlock.futuro,
+      block: BudgetBlockType.futuro,
       sortOrder: 11,
     ),
     BudgetCategory(
@@ -119,7 +119,7 @@ class DefaultCategories {
       name: 'Otros',
       emoji: '📦',
       type: CategoryType.gasto,
-      block: BudgetBlock.esenciales,
+      block: BudgetBlockType.esenciales,
       sortOrder: 12,
     ),
   ];
@@ -130,7 +130,7 @@ class DefaultCategories {
       name: 'Salario',
       emoji: '💼',
       type: CategoryType.ingreso,
-      block: BudgetBlock.esenciales,
+      block: BudgetBlockType.esenciales,
       sortOrder: 1,
     ),
     BudgetCategory(
@@ -138,7 +138,7 @@ class DefaultCategories {
       name: 'Freelance',
       emoji: '🔧',
       type: CategoryType.ingreso,
-      block: BudgetBlock.esenciales,
+      block: BudgetBlockType.esenciales,
       sortOrder: 2,
     ),
   ];

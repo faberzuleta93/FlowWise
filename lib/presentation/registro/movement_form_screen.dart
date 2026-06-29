@@ -37,29 +37,30 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
   Future<void> _onSave() async {
     final success = await _vm.save();
     if (success && mounted) {
-      Navigator.pop(context);
-      Navigator.pop(context);
-      _showSuccess();
+      Navigator.popUntil(context, (route) => route.isFirst);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _labelExito,
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: AppColors.surfaceLight,
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
-  void _showSuccess() {
-    final label = switch (_vm.type) {
-      MovementType.ingreso => '✅ Ingreso registrado',
-      MovementType.gasto => '✅ Gasto registrado',
-      MovementType.transferencia => '↔️ Transferencia registrada',
-    };
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            Text(label, style: AppTypography.bodyMedium(color: Colors.white)),
-        backgroundColor: AppColors.surfaceLight,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  String get _labelExito => switch (_vm.type) {
+        MovementType.ingreso => '✅ Ingreso registrado',
+        MovementType.gasto => '✅ Gasto registrado',
+        MovementType.transferencia => '↔️ Transferencia registrada',
+      };
 
   @override
   Widget build(BuildContext context) {

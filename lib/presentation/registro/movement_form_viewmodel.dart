@@ -3,28 +3,28 @@ import '../../domain/models/movement_session.dart';
 import '../../domain/models/financial_movement.dart';
 import '../../domain/models/budget_category.dart';
 import '../../domain/models/account.dart';
-import '../../domain/repositories/movement_repository.dart';
+import '../../domain/financialCore/engine/financial_engine.dart';
+import '../../state/financial_state_notifier.dart';
 
 enum FormState { idle, loading, success, error }
 
 class MovementFormViewModel extends ChangeNotifier {
-  final MovementRepository _repository;
+  final FinancialStateNotifier _financialNotifier;
   late MovementSession _session;
 
   FormState _state = FormState.idle;
   String? _errorMessage;
 
   MovementFormViewModel({
-    required MovementRepository repository,
+    required FinancialStateNotifier financialNotifier,
     required MovementType type,
-  }) : _repository = repository {
+  }) : _financialNotifier = financialNotifier {
     _session = MovementSession(
       type: type,
       date: DateTime.now(),
     );
   }
 
-  // Getters
   MovementSession get session => _session;
   FormState get state => _state;
   String? get errorMessage => _errorMessage;
@@ -32,7 +32,6 @@ class MovementFormViewModel extends ChangeNotifier {
   bool get isLoading => _state == FormState.loading;
   MovementType get type => _session.type;
 
-  // Actualizadores — cada uno notifica a los widgets
   void updateAmount(double amount) {
     _session = _session.copyWith(amount: amount);
     notifyListeners();
@@ -76,7 +75,11 @@ class MovementFormViewModel extends ChangeNotifier {
 
     try {
       final movement = _session.toMovement();
-      await _repository.save(movement);
+      final event = _buildEvent(movement);
+
+      // Notifica al Core Financiero — actualiza todo el estado
+      await _financialNotifier.process(event);
+
       _state = FormState.success;
       notifyListeners();
       return true;
@@ -86,6 +89,24 @@ class MovementFormViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  FinancialEvent _buildEvent(FinancialMovement movement) {
+    final now = DateTime.now();
+    return switch (_session.type) {
+      MovementType.ingreso => IncomeRegistered(
+          movement: movement,
+          occurredAt: now,
+        ),
+      MovementType.gasto => ExpenseRegistered(
+          movement: movement,
+          occurredAt: now,
+        ),
+      MovementType.transferencia => TransferRegistered(
+          movement: movement,
+          occurredAt: now,
+        ),
+    };
   }
 
   void reset() {
