@@ -2,7 +2,7 @@ import '../../../widgets/card_base.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
-import '../../../models/home_view_model.dart';
+import '../../../domain/models/home_view_model.dart';
 import '../../../core/utils/formatters.dart';
 
 class RecentMovementsCard extends StatelessWidget {

@@ -9,6 +9,9 @@ class BudgetBlock {
   final double percentage;
   final BlockStatus status;
 
+  /// Monto excedido. Es 0 si no hay exceso.
+  double get overage => spent > allocated ? spent - allocated : 0;
+
   const BudgetBlock({
     required this.allocated,
     required this.spent,

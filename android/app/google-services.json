@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "446862193240",
+    "project_id": "flowwise-c8189",
+    "storage_bucket": "flowwise-c8189.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:446862193240:android:c5623719e640c95809502d",
+        "android_client_info": {
+          "package_name": "com.example.flowwise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6wZ-JIks1f4fJBMrK6az7w3LO6EqLD-c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

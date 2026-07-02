@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/colors.dart';
@@ -11,13 +13,16 @@ import 'screens/informes/informes_screen.dart';
 import 'screens/perfil/perfil_screen.dart';
 import 'screens/registro/registro_screen.dart';
 
-void main() {
-  // Composición del Core Financiero
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   final repository = MemoryMovementRepository();
   final engine = FinancialEngineV1(movementRepository: repository);
   final financialNotifier = FinancialStateNotifier(engine: engine);
 
-  // Inicializar al arrancar
   financialNotifier.initialize();
 
   runApp(FlowWiseApp(financialNotifier: financialNotifier));

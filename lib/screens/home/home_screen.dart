@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/colors.dart';
-import '../../models/home_view_model.dart';
+import '../../domain/models/home_view_model.dart';
 import '../../state/financial_state_notifier.dart';
 import '../../domain/models/financial_movement.dart';
 import 'widgets/home_header.dart';
@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  HomeHeader(
+                  const HomeHeader(
                     nombreUsuario: 'Faber',
                     esPremium: false,
                     inicial: 'F',

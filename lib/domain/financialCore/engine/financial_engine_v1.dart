@@ -2,7 +2,7 @@ import '../../../domain/repositories/movement_repository.dart';
 import '../../models/financial_state.dart';
 import '../rules/financial_rules_engine.dart';
 import '../decisions/decision_engine.dart';
-import '../decisions/decision_engine_v1.dart' as dec;
+import '../decisions/decision_engine_impl.dart';
 import 'financial_engine.dart';
 
 class FinancialEngineV1 implements FinancialEngine {
@@ -14,7 +14,7 @@ class FinancialEngineV1 implements FinancialEngine {
     required MovementRepository movementRepository,
   })  : _movementRepository = movementRepository,
         _rules = FinancialRulesEngine(),
-        _decisionEngine = dec.DecisionEngineV1();
+        _decisionEngine = DecisionEngineImpl();
 
   @override
   Future<FinancialState> process({
