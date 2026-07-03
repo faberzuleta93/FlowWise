@@ -17,29 +17,17 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -58,5 +46,42 @@ class DefaultFirebaseOptions {
     messagingSenderId: '446862193240',
     projectId: 'flowwise-c8189',
     storageBucket: 'flowwise-c8189.firebasestorage.app',
+  );
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCBa-bk1B1u5K3-tzbZVHUhaSKRJN5J2pc',
+    appId: '1:446862193240:web:1ded1e0e94556ff809502d',
+    messagingSenderId: '446862193240',
+    projectId: 'flowwise-c8189',
+    authDomain: 'flowwise-c8189.firebaseapp.com',
+    storageBucket: 'flowwise-c8189.firebasestorage.app',
+    measurementId: 'G-ZVXWQMV94Q',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDZn1NV_jEzxMBGPuyudYs4RPmRo6itSmw',
+    appId: '1:446862193240:ios:a40eb0e642ca4c8509502d',
+    messagingSenderId: '446862193240',
+    projectId: 'flowwise-c8189',
+    storageBucket: 'flowwise-c8189.firebasestorage.app',
+    iosBundleId: 'com.example.flowwise',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDZn1NV_jEzxMBGPuyudYs4RPmRo6itSmw',
+    appId: '1:446862193240:ios:a40eb0e642ca4c8509502d',
+    messagingSenderId: '446862193240',
+    projectId: 'flowwise-c8189',
+    storageBucket: 'flowwise-c8189.firebasestorage.app',
+    iosBundleId: 'com.example.flowwise',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCBa-bk1B1u5K3-tzbZVHUhaSKRJN5J2pc',
+    appId: '1:446862193240:web:14119c5b2c2da3fd09502d',
+    messagingSenderId: '446862193240',
+    projectId: 'flowwise-c8189',
+    authDomain: 'flowwise-c8189.firebaseapp.com',
+    storageBucket: 'flowwise-c8189.firebasestorage.app',
+    measurementId: 'G-H504LWDZ67',
   );
 }
