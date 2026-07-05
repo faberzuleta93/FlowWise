@@ -31,4 +31,9 @@ class MemoryMovementRepository implements MovementRepository {
   Future<void> delete(String id) async {
     _movements.removeWhere((m) => m.id == id);
   }
+
+  @override
+  Future<void> clear() async {
+    _movements.clear();
+  }
 }

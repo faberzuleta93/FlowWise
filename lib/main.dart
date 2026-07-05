@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/colors.dart';
 import 'core/theme/typography.dart';
-import 'data/repositories/memory_movement_repository.dart';
+import 'data/datasources/shared_preferences_movement_datasource.dart';
+import 'data/repositories/local_movement_repository.dart';
 import 'domain/financialCore/engine/financial_engine_v1.dart';
 import 'state/financial_state_notifier.dart';
 import 'screens/home/home_screen.dart';
@@ -15,15 +16,19 @@ import 'screens/registro/registro_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  final repository = MemoryMovementRepository();
+  // Cadena de dependencias:
+  // Datasource → Repository → Engine → Notifier
+  final datasource = SharedPreferencesMovementDatasource();
+  final repository = LocalMovementRepository(datasource: datasource);
   final engine = FinancialEngineV1(movementRepository: repository);
   final financialNotifier = FinancialStateNotifier(engine: engine);
 
-  financialNotifier.initialize();
+  await financialNotifier.initialize();
 
   runApp(FlowWiseApp(financialNotifier: financialNotifier));
 }

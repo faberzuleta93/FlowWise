@@ -36,7 +36,7 @@ class MomentumDecisionRule implements DecisionRule {
                 'Revisa tus gastos.',
             priority: DecisionPriority.high,
             category: DecisionCategory.momentum,
-            action: ReviewBudgetAction(
+            action: const ReviewBudgetAction(
               blockName: 'general',
               exceeded: false,
             ),

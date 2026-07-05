@@ -16,7 +16,8 @@ class RecentMovementsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CardBase(
-      pregunta: 'Movimientos de hoy',
+      pregunta: 'Movimientos recientes',
+      // TODO(Sprint-4): Navegar a la pantalla completa de movimientos.
       accion: Text('Ver todo',
           style: AppTypography.caption(color: AppColors.accent)),
       child: Column(

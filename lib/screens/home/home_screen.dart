@@ -8,6 +8,8 @@ import 'widgets/financial_status_card.dart';
 import 'widgets/daily_spending_card.dart';
 import 'widgets/budget_blocks_card.dart';
 import 'widgets/recent_movements_card.dart';
+import '../../presentation/home/mappers/decision_ui_mapper.dart';
+import 'widgets/decisions_card.dart';
 
 class HomeScreen extends StatefulWidget {
   final FinancialStateNotifier financialNotifier;
@@ -22,12 +24,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Inicializa el estado financiero al abrir el Home
-    widget.financialNotifier.initialize();
-  }
+  // Nota: la inicialización del FinancialStateNotifier ocurre
+  // únicamente en main.dart, antes de runApp(). Este widget
+  // solo escucha y renderiza el estado.
 
   @override
   Widget build(BuildContext context) {
@@ -76,10 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ];
 
-        // Convertir movimientos recientes
+        // TODO(Sprint-3): extraer _toMovimientoReciente y los mapas de
+        // categorías/cuentas a un MovementPresentationMapper cuando exista
+        // la pantalla de Movimientos (segundo consumidor real — YAGNI).
         final movimientos =
             state.recentMovements.map((m) => _toMovimientoReciente(m)).toList();
-
+        final decisionesUi = DecisionUiMapper.mapAll(state.decisions);
         return Scaffold(
           backgroundColor: AppColors.midnight,
           body: SafeArea(
@@ -88,6 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // TODO(Sprint-3 Auth): reemplazar nombreUsuario, inicial y
+                  // esPremium por la información real del usuario autenticado.
                   const HomeHeader(
                     nombreUsuario: 'Faber',
                     esPremium: false,
@@ -98,6 +101,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ingresosMes: state.monthSummary.totalIncome,
                     gastosMes: state.monthSummary.totalExpenses,
                     balance: state.monthSummary.balance,
+                  ),
+                  DecisionsCard(
+                    decisions: decisionesUi,
+                    // TODO(Sprint-3): resolver navegación según DecisionAction.
+                    onActionTap: (_) {},
                   ),
                   DailySpendingCard(
                     disponibleHoy: state.liquidity.availableToday,
@@ -264,19 +272,19 @@ class _EmptyMovements extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
+      child: const Column(
         children: [
-          const Text('💸', style: TextStyle(fontSize: 36)),
-          const SizedBox(height: 12),
-          const Text(
+          Text('💸', style: TextStyle(fontSize: 36)),
+          SizedBox(height: 12),
+          Text(
             'Aún no tienes movimientos',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 6),
-          const Text(
+          SizedBox(height: 6),
+          Text(
             'Registra tu primer ingreso\ntocando el botón +',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
