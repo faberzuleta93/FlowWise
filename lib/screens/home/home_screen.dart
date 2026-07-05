@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   // TODO(Sprint-3 Auth): reemplazar nombreUsuario, inicial y
                   // esPremium por la información real del usuario autenticado.
                   const HomeHeader(

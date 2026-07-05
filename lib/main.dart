@@ -1,3 +1,4 @@
+import 'data/repositories/firebase_authentication_repository.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'data/datasources/shared_preferences_movement_datasource.dart';
 import 'data/repositories/local_movement_repository.dart';
 import 'domain/financialCore/engine/financial_engine_v1.dart';
 import 'state/financial_state_notifier.dart';
+import 'state/auth_state_notifier.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/movimientos/movimientos_screen.dart';
 import 'screens/informes/informes_screen.dart';
@@ -21,12 +23,17 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Cadena de dependencias:
+// Cadena de dependencias:
   // Datasource → Repository → Engine → Notifier
   final datasource = SharedPreferencesMovementDatasource();
   final repository = LocalMovementRepository(datasource: datasource);
   final engine = FinancialEngineV1(movementRepository: repository);
   final financialNotifier = FinancialStateNotifier(engine: engine);
+
+  // Autenticación
+  final authRepository = FirebaseAuthenticationRepository();
+// ignore: unused_local_variable — el Splash lo consumirá (siguiente paso)
+  final authNotifier = AuthStateNotifier(repository: authRepository);
 
   await financialNotifier.initialize();
 
