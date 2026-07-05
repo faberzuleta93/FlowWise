@@ -15,6 +15,7 @@ import 'screens/movimientos/movimientos_screen.dart';
 import 'screens/informes/informes_screen.dart';
 import 'screens/perfil/perfil_screen.dart';
 import 'screens/registro/registro_screen.dart';
+import 'navigation/app_root.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,20 +33,24 @@ void main() async {
 
   // Autenticación
   final authRepository = FirebaseAuthenticationRepository();
-// ignore: unused_local_variable — el Splash lo consumirá (siguiente paso)
   final authNotifier = AuthStateNotifier(repository: authRepository);
 
   await financialNotifier.initialize();
 
-  runApp(FlowWiseApp(financialNotifier: financialNotifier));
+  runApp(FlowWiseApp(
+    financialNotifier: financialNotifier,
+    authNotifier: authNotifier,
+  ));
 }
 
 class FlowWiseApp extends StatelessWidget {
   final FinancialStateNotifier financialNotifier;
+  final AuthStateNotifier authNotifier;
 
   const FlowWiseApp({
     super.key,
     required this.financialNotifier,
+    required this.authNotifier,
   });
 
   @override
@@ -54,7 +59,10 @@ class FlowWiseApp extends StatelessWidget {
       title: 'FlowWise',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark(),
-      home: MainNavigator(financialNotifier: financialNotifier),
+      home: AppRoot(
+        financialNotifier: financialNotifier,
+        authNotifier: authNotifier,
+      ),
     );
   }
 }
