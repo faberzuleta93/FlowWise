@@ -4,7 +4,7 @@ import '../../core/theme/typography.dart';
 import '../../domain/repositories/authentication_repository.dart';
 import '../../presentation/auth/auth_form_viewmodel.dart';
 
-/// Pantalla de login/registro con email.
+/// Pantalla de login/registro con email y proveedores federados.
 ///
 /// Regla 5: nunca navega como consecuencia del cambio de
 /// autenticación. Tras un login exitoso, AppRoot detecta la
@@ -118,6 +118,15 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  const _DivisorO(),
+                  const SizedBox(height: 24),
+                  _BotonGoogle(
+                    loading: _vm.isLoading,
+                    onTap: _vm.isLoading
+                        ? null
+                        : () => _vm.submitWithProvider(AuthProvider.google),
+                  ),
                   // TODO(Sprint-3+): '¿Olvidaste tu contraseña?' —
                   // deuda documentada, decisión de producto V2.
                   const SizedBox(height: 32),
@@ -228,6 +237,64 @@ class _BotonPrincipal extends StatelessWidget {
                 )
               : Text(label,
                   style: AppTypography.bodyMedium(color: AppColors.midnight)),
+        ),
+      ),
+    );
+  }
+}
+
+class _DivisorO extends StatelessWidget {
+  const _DivisorO();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Container(height: 1, color: AppColors.border)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text('o', style: AppTypography.caption()),
+        ),
+        Expanded(child: Container(height: 1, color: AppColors.border)),
+      ],
+    );
+  }
+}
+
+// TODO(pulido-visual): reemplazar la 'G' tipográfica por el asset
+// oficial de Google según sus branding guidelines.
+class _BotonGoogle extends StatelessWidget {
+  final bool loading;
+  final VoidCallback? onTap;
+
+  const _BotonGoogle({required this.loading, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 52,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('G',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4285F4),
+                  )),
+              const SizedBox(width: 10),
+              Text('Continuar con Google', style: AppTypography.bodyMedium()),
+            ],
+          ),
         ),
       ),
     );

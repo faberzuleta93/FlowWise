@@ -6,6 +6,10 @@ enum AuthFormMode { login, register }
 
 enum AuthFormStatus { idle, loading, error }
 
+/// Proveedores federados de autenticación.
+/// Email no está aquí: tiene formulario propio (submit).
+enum AuthProvider { google, apple }
+
 /// ViewModel del formulario de autenticación.
 ///
 /// Propietario (Regla 4): AuthScreen lo crea y lo destruye.
@@ -85,6 +89,37 @@ class AuthFormViewModel extends ChangeNotifier {
       _status = AuthFormStatus.error;
       notifyListeners();
     }
+  }
+
+  /// Inicia el flujo del proveedor federado indicado. No navega
+  /// (Regla 5). La cancelación del usuario no se reporta como
+  /// error: cerrar el selector es una decisión, no un fallo.
+  Future<void> submitWithProvider(AuthProvider provider) async {
+    _status = AuthFormStatus.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authenticate(provider);
+      _status = AuthFormStatus.idle;
+      notifyListeners();
+    } on AuthFailure catch (f) {
+      if (f.reason == AuthFailureReason.cancelled) {
+        _status = AuthFormStatus.idle;
+      } else {
+        _errorMessage = _messageFor(f.reason);
+        _status = AuthFormStatus.error;
+      }
+      notifyListeners();
+    }
+  }
+
+  /// Despacha al método del contrato según el proveedor.
+  Future<void> _authenticate(AuthProvider provider) {
+    return switch (provider) {
+      AuthProvider.google => _repository.signInWithGoogle(),
+      AuthProvider.apple => _repository.signInWithApple(),
+    };
   }
 
   String? _validate() {

@@ -77,7 +77,30 @@
 ✔ Logout reactivo (Regla 5 verificada en runtime)
 ✔ AppRoot limpia pila al cambiar flujo
 
-### Vertical 3 — Google Sign-In → pendiente
+**Auditoría post-certificación V2** (sin defectos críticos):
+- popUntil en AppRoot: correcto hoy; refinar si aparecen flujos
+  apilados que deban sobrevivir cambios de sesión.
+- Inyección en cascada (2 niveles): aceptable; umbral de revisión
+  en 4+ niveles.
+- Backlog UX: mostrar/ocultar contraseña; limpiar campos al
+  alternar login/registro.
+- auth_screen.dart cerca del límite de tamaño; evaluar extracción
+  de widgets al crecer en V3.
+
+### Vertical 3 — Google Sign-In
+**Estado: CERTIFICADA**
+
+✔ Infraestructura iOS (GoogleService-Info.plist con OAuth,
+  REVERSED_CLIENT_ID como URL Scheme en Info.plist)
+✔ AuthProvider enum + submitWithProvider (abstracción de
+  proveedores federados, sin método por proveedor)
+✔ Cancelación silenciosa (cerrar el selector no es un error)
+✔ Certificado: login, sesión restaurada, re-login, cancelación
+
+**Auditoría post-certificación V2** (aplicada en V3): la extracción
+de widgets de auth_screen.dart queda en observación; el archivo
+creció con _DivisorO y _BotonGoogle — evaluar extracción en V4/V5
+si se agregan más elementos.
 ### Vertical 4 — Perfil financiero → pendiente
 ### Vertical 5 — Home conectado → pendiente
 
@@ -92,3 +115,6 @@
   considerar AuthFailureReason.providerUnavailable al retomarlo)
 - Arquitectura objetivo: AuthenticationCoordinator (cuando auth +
   onboarding + perfiles converjan)
+- Ícono oficial de Google (branding guidelines) — pulido visual
+- BUNDLE_ID com.example.flowwise → cambiar antes de App Store
+  (requiere re-registrar app en Firebase) — pre-lanzamiento
