@@ -11,15 +11,18 @@ import 'widgets/budget_blocks_card.dart';
 import 'widgets/recent_movements_card.dart';
 import '../../presentation/home/mappers/decision_ui_mapper.dart';
 import 'widgets/decisions_card.dart';
+import '../../state/user_profile_notifier.dart';
 
 class HomeScreen extends StatefulWidget {
   final FinancialStateNotifier financialNotifier;
   final FinancialProfileNotifier profileNotifier;
+  final UserProfileNotifier userProfileNotifier;
 
   const HomeScreen({
     super.key,
     required this.financialNotifier,
     required this.profileNotifier,
+    required this.userProfileNotifier,
   });
 
   @override
@@ -94,10 +97,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: <Widget>[
                   // TODO(Sprint-3 Auth): reemplazar nombreUsuario, inicial y
                   // esPremium por la información real del usuario autenticado.
-                  const HomeHeader(
-                    nombreUsuario: 'Faber',
-                    esPremium: false,
-                    inicial: 'F',
+                  HomeHeader(
+                    nombreUsuario:
+                        widget.userProfileNotifier.profile?.name ?? 'Usuario',
+                    esPremium:
+                        widget.userProfileNotifier.profile?.premium ?? false,
+                    inicial: widget.userProfileNotifier.profile?.initial ?? '?',
                   ),
                   const SizedBox(height: 20),
                   FinancialStatusCard(

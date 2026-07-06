@@ -28,6 +28,11 @@
   funcional (vertical certificada).
   - "A partir de la base construida, una vertical bien certificada
   vale más que dos implementadas a toda velocidad."
+  - "La arquitectura debe emerger de las preguntas de negocio, no
+  de patrones preconcebidos."
+- Umbral objetivo del resolver: cuando StartupRouteResolver
+  necesite combinar más de tres estados independientes o ejecutar
+  lógica secuencial entre ellos, se promueve a StartupCoordinator.
 
 ## Auditorías recurrentes
 

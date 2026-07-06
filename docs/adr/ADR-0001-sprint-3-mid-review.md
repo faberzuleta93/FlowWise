@@ -31,6 +31,7 @@ propietarios; R5 probada en runtime (logout reactivo).
 - Certificación con evidencia (logs/grep/plutil) sobre lectura:
   el bug de persistencia (S2) y el plist sin OAuth (V3) solo
   aparecieron con evidencia real.
+  
 
 ## Decisiones malas documentadas (para no repetir)
 
@@ -51,3 +52,11 @@ propietarios; R5 probada en runtime (logout reactivo).
 Separador de miles; teclado sobre formulario; pantalla de
 Movimientos (desbloquea Ver todo, MovementPresentationMapper,
 tests de edición). Comprometido: integración perfil ↔ Core.
+
+## Lección adicional
+
+La arquitectura debe emerger de las preguntas de negocio, no de
+patrones preconcebidos. Las mejores decisiones del Sprint 3
+(offeredAt, separación Auth/UserProfile/FinancialProfile,
+navegación reactiva vía AppRoot) surgieron en auditorías
+funcionales, no en el diseño inicial.

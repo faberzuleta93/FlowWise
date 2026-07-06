@@ -1,15 +1,19 @@
 import '../domain/models/financial_profile.dart';
 import '../state/auth_state_notifier.dart';
+import '../state/movement_ownership_notifier.dart';
 
 /// Rutas posibles al arranque de FlowWise.
-enum StartupRoute { splash, welcome, financialProfile, home }
+enum StartupRoute { splash, welcome, ownershipDecision, financialProfile, home }
 
 /// Decide la primera ruta de la aplicación.
 ///
 /// Función pura: recibe estados ya resueltos, retorna ruta.
-/// No navega, no conoce widgets, no tiene efectos secundarios.
-/// Si esta lógica deja de caber en una función pura, será el
-/// momento de promoverla a un coordinador — no antes (Regla 1).
+/// Secuencia de negocio: Auth → Ownership → Onboarding → Home.
+///
+/// UMBRAL DOCUMENTADO: hoy combina exactamente tres estados
+/// independientes sin lógica secuencial. Cuando necesite más de
+/// tres, o ejecutar lógica secuencial entre ellos, se promueve
+/// a StartupCoordinator (criterio objetivo, ADR-0001).
 ///
 /// "Las pantallas representan estados; no deciden estados."
 class StartupRouteResolver {
@@ -17,20 +21,22 @@ class StartupRouteResolver {
 
   static StartupRoute resolve({
     required AuthStatus authStatus,
+    required OwnershipStatus ownershipStatus,
     required OnboardingStatus onboardingStatus,
   }) {
     return switch (authStatus) {
       AuthStatus.unknown => StartupRoute.splash,
       AuthStatus.unauthenticated => StartupRoute.welcome,
-      AuthStatus.authenticated => switch (onboardingStatus) {
-          // Perfil aún cargando: la marca sigue en pantalla.
-          OnboardingStatus.unknown => StartupRoute.splash,
-          // Nunca se le ofreció: única vez que se muestra el flujo.
-          OnboardingStatus.notOffered => StartupRoute.financialProfile,
-          // Pospuesto o completado: nunca reinterrumpir.
-          OnboardingStatus.offered ||
-          OnboardingStatus.completed =>
-            StartupRoute.home,
+      AuthStatus.authenticated => switch (ownershipStatus) {
+          OwnershipStatus.unknown => StartupRoute.splash,
+          OwnershipStatus.pending => StartupRoute.ownershipDecision,
+          OwnershipStatus.resolved => switch (onboardingStatus) {
+              OnboardingStatus.unknown => StartupRoute.splash,
+              OnboardingStatus.notOffered => StartupRoute.financialProfile,
+              OnboardingStatus.offered ||
+              OnboardingStatus.completed =>
+                StartupRoute.home,
+            },
         },
     };
   }

@@ -8,12 +8,16 @@ import 'data/datasources/shared_preferences_movement_datasource.dart';
 import 'data/repositories/local_movement_repository.dart';
 import 'data/repositories/firebase_authentication_repository.dart';
 import 'data/repositories/shared_preferences_financial_profile_repository.dart';
+import 'data/repositories/shared_preferences_user_profile_repository.dart';
+import 'data/services/local_movement_ownership_service.dart';
 import 'domain/financialCore/engine/financial_engine_v1.dart';
 import 'domain/repositories/authentication_repository.dart';
 import 'navigation/app_root.dart';
 import 'state/financial_state_notifier.dart';
 import 'state/auth_state_notifier.dart';
 import 'state/financial_profile_notifier.dart';
+import 'state/user_profile_notifier.dart';
+import 'state/movement_ownership_notifier.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/movimientos/movimientos_screen.dart';
 import 'screens/informes/informes_screen.dart';
@@ -29,17 +33,32 @@ void main() async {
 
   // Composition Root — cadena de dependencias (Regla 4):
   // todas creadas aquí, viven toda la app.
+
+  // Core Financiero
   final datasource = SharedPreferencesMovementDatasource();
   final repository = LocalMovementRepository(datasource: datasource);
   final engine = FinancialEngineV1(movementRepository: repository);
   final financialNotifier = FinancialStateNotifier(engine: engine);
 
+  // Autenticación
   final authRepository = FirebaseAuthenticationRepository();
   final authNotifier = AuthStateNotifier(repository: authRepository);
 
+  // Perfil financiero
   final profileRepository = SharedPreferencesFinancialProfileRepository();
   final profileNotifier =
       FinancialProfileNotifier(repository: profileRepository);
+
+  // Identidad del usuario
+  final userProfileRepository = SharedPreferencesUserProfileRepository();
+  final userProfileNotifier =
+      UserProfileNotifier(repository: userProfileRepository);
+
+  // Propiedad de movimientos (Decisión 4)
+  final ownershipService =
+      LocalMovementOwnershipService(movementDatasource: datasource);
+  final ownershipNotifier =
+      MovementOwnershipNotifier(service: ownershipService);
 
   await financialNotifier.initialize();
 
@@ -47,6 +66,8 @@ void main() async {
     financialNotifier: financialNotifier,
     authNotifier: authNotifier,
     profileNotifier: profileNotifier,
+    userProfileNotifier: userProfileNotifier,
+    ownershipNotifier: ownershipNotifier,
     authRepository: authRepository,
   ));
 }
@@ -55,6 +76,8 @@ class FlowWiseApp extends StatelessWidget {
   final FinancialStateNotifier financialNotifier;
   final AuthStateNotifier authNotifier;
   final FinancialProfileNotifier profileNotifier;
+  final UserProfileNotifier userProfileNotifier;
+  final MovementOwnershipNotifier ownershipNotifier;
   final AuthenticationRepository authRepository;
 
   const FlowWiseApp({
@@ -62,6 +85,8 @@ class FlowWiseApp extends StatelessWidget {
     required this.financialNotifier,
     required this.authNotifier,
     required this.profileNotifier,
+    required this.userProfileNotifier,
+    required this.ownershipNotifier,
     required this.authRepository,
   });
 
@@ -75,6 +100,8 @@ class FlowWiseApp extends StatelessWidget {
         financialNotifier: financialNotifier,
         authNotifier: authNotifier,
         profileNotifier: profileNotifier,
+        userProfileNotifier: userProfileNotifier,
+        ownershipNotifier: ownershipNotifier,
         authRepository: authRepository,
       ),
     );
@@ -84,12 +111,14 @@ class FlowWiseApp extends StatelessWidget {
 class MainNavigator extends StatefulWidget {
   final FinancialStateNotifier financialNotifier;
   final FinancialProfileNotifier profileNotifier;
+  final UserProfileNotifier userProfileNotifier;
   final AuthenticationRepository authRepository;
 
   const MainNavigator({
     super.key,
     required this.financialNotifier,
     required this.profileNotifier,
+    required this.userProfileNotifier,
     required this.authRepository,
   });
 
@@ -109,6 +138,7 @@ class _MainNavigatorState extends State<MainNavigator> {
       HomeScreen(
         financialNotifier: widget.financialNotifier,
         profileNotifier: widget.profileNotifier,
+        userProfileNotifier: widget.userProfileNotifier,
       ),
       const MovimientosScreen(),
       const InformesScreen(),
