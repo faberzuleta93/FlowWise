@@ -20,9 +20,12 @@ abstract class AuthenticationRepository {
     required String password,
   });
 
+  /// [name] se persiste en el proveedor y viajará en
+  /// AuthSession.displayName, uniforme con Google/Apple.
   Future<AuthSession> signUpWithEmail({
     required String email,
     required String password,
+    String? name,
   });
 
   Future<AuthSession> signInWithGoogle();

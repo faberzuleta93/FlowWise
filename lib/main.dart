@@ -8,6 +8,7 @@ import 'core/theme/typography.dart';
 import 'data/datasources/shared_preferences_movement_datasource.dart';
 import 'data/repositories/local_movement_repository.dart';
 import 'domain/financialCore/engine/financial_engine_v1.dart';
+import 'domain/repositories/authentication_repository.dart';
 import 'state/financial_state_notifier.dart';
 import 'state/auth_state_notifier.dart';
 import 'screens/home/home_screen.dart';
@@ -40,17 +41,20 @@ void main() async {
   runApp(FlowWiseApp(
     financialNotifier: financialNotifier,
     authNotifier: authNotifier,
+    authRepository: authRepository,
   ));
 }
 
 class FlowWiseApp extends StatelessWidget {
   final FinancialStateNotifier financialNotifier;
   final AuthStateNotifier authNotifier;
+  final AuthenticationRepository authRepository;
 
   const FlowWiseApp({
     super.key,
     required this.financialNotifier,
     required this.authNotifier,
+    required this.authRepository,
   });
 
   @override
@@ -62,6 +66,7 @@ class FlowWiseApp extends StatelessWidget {
       home: AppRoot(
         financialNotifier: financialNotifier,
         authNotifier: authNotifier,
+        authRepository: authRepository,
       ),
     );
   }
@@ -69,10 +74,12 @@ class FlowWiseApp extends StatelessWidget {
 
 class MainNavigator extends StatefulWidget {
   final FinancialStateNotifier financialNotifier;
+  final AuthenticationRepository authRepository;
 
   const MainNavigator({
     super.key,
     required this.financialNotifier,
+    required this.authRepository,
   });
 
   @override
@@ -91,7 +98,7 @@ class _MainNavigatorState extends State<MainNavigator> {
       HomeScreen(financialNotifier: widget.financialNotifier),
       const MovimientosScreen(),
       const InformesScreen(),
-      const PerfilScreen(),
+      PerfilScreen(authRepository: widget.authRepository),
     ];
   }
 

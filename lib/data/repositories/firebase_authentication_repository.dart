@@ -50,12 +50,20 @@ class FirebaseAuthenticationRepository implements AuthenticationRepository {
   Future<AuthSession> signUpWithEmail({
     required String email,
     required String password,
+    String? name,
   }) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      if (name != null && name.trim().isNotEmpty) {
+        await credential.user?.updateDisplayName(name.trim());
+        await credential.user?.reload();
+        // reload() actualiza el usuario en memoria; leemos la
+        // versión fresca para que AuthSession incluya el nombre.
+        return _requireSession(_auth.currentUser);
+      }
       return _requireSession(credential.user);
     } on FirebaseAuthException catch (e) {
       throw _toFailure(e);
