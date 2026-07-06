@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/colors.dart';
 import '../../domain/models/home_view_model.dart';
 import '../../state/financial_state_notifier.dart';
+import '../../state/financial_profile_notifier.dart';
 import '../../domain/models/financial_movement.dart';
 import 'widgets/home_header.dart';
 import 'widgets/financial_status_card.dart';
@@ -13,10 +14,12 @@ import 'widgets/decisions_card.dart';
 
 class HomeScreen extends StatefulWidget {
   final FinancialStateNotifier financialNotifier;
+  final FinancialProfileNotifier profileNotifier;
 
   const HomeScreen({
     super.key,
     required this.financialNotifier,
+    required this.profileNotifier,
   });
 
   @override
@@ -101,6 +104,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ingresosMes: state.monthSummary.totalIncome,
                     gastosMes: state.monthSummary.totalExpenses,
                     balance: state.monthSummary.balance,
+                    ingresoDeclarado:
+                        widget.profileNotifier.declaredMonthlyIncome,
                   ),
                   DecisionsCard(
                     decisions: decisionesUi,

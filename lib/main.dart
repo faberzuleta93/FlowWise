@@ -1,4 +1,3 @@
-import 'data/repositories/firebase_authentication_repository.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
@@ -7,16 +6,19 @@ import 'core/theme/colors.dart';
 import 'core/theme/typography.dart';
 import 'data/datasources/shared_preferences_movement_datasource.dart';
 import 'data/repositories/local_movement_repository.dart';
+import 'data/repositories/firebase_authentication_repository.dart';
+import 'data/repositories/shared_preferences_financial_profile_repository.dart';
 import 'domain/financialCore/engine/financial_engine_v1.dart';
 import 'domain/repositories/authentication_repository.dart';
+import 'navigation/app_root.dart';
 import 'state/financial_state_notifier.dart';
 import 'state/auth_state_notifier.dart';
+import 'state/financial_profile_notifier.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/movimientos/movimientos_screen.dart';
 import 'screens/informes/informes_screen.dart';
 import 'screens/perfil/perfil_screen.dart';
 import 'screens/registro/registro_screen.dart';
-import 'navigation/app_root.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,22 +27,26 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-// Cadena de dependencias:
-  // Datasource → Repository → Engine → Notifier
+  // Composition Root — cadena de dependencias (Regla 4):
+  // todas creadas aquí, viven toda la app.
   final datasource = SharedPreferencesMovementDatasource();
   final repository = LocalMovementRepository(datasource: datasource);
   final engine = FinancialEngineV1(movementRepository: repository);
   final financialNotifier = FinancialStateNotifier(engine: engine);
 
-  // Autenticación
   final authRepository = FirebaseAuthenticationRepository();
   final authNotifier = AuthStateNotifier(repository: authRepository);
+
+  final profileRepository = SharedPreferencesFinancialProfileRepository();
+  final profileNotifier =
+      FinancialProfileNotifier(repository: profileRepository);
 
   await financialNotifier.initialize();
 
   runApp(FlowWiseApp(
     financialNotifier: financialNotifier,
     authNotifier: authNotifier,
+    profileNotifier: profileNotifier,
     authRepository: authRepository,
   ));
 }
@@ -48,12 +54,14 @@ void main() async {
 class FlowWiseApp extends StatelessWidget {
   final FinancialStateNotifier financialNotifier;
   final AuthStateNotifier authNotifier;
+  final FinancialProfileNotifier profileNotifier;
   final AuthenticationRepository authRepository;
 
   const FlowWiseApp({
     super.key,
     required this.financialNotifier,
     required this.authNotifier,
+    required this.profileNotifier,
     required this.authRepository,
   });
 
@@ -66,6 +74,7 @@ class FlowWiseApp extends StatelessWidget {
       home: AppRoot(
         financialNotifier: financialNotifier,
         authNotifier: authNotifier,
+        profileNotifier: profileNotifier,
         authRepository: authRepository,
       ),
     );
@@ -74,11 +83,13 @@ class FlowWiseApp extends StatelessWidget {
 
 class MainNavigator extends StatefulWidget {
   final FinancialStateNotifier financialNotifier;
+  final FinancialProfileNotifier profileNotifier;
   final AuthenticationRepository authRepository;
 
   const MainNavigator({
     super.key,
     required this.financialNotifier,
+    required this.profileNotifier,
     required this.authRepository,
   });
 
@@ -95,7 +106,10 @@ class _MainNavigatorState extends State<MainNavigator> {
   void initState() {
     super.initState();
     _screens = [
-      HomeScreen(financialNotifier: widget.financialNotifier),
+      HomeScreen(
+        financialNotifier: widget.financialNotifier,
+        profileNotifier: widget.profileNotifier,
+      ),
       const MovimientosScreen(),
       const InformesScreen(),
       PerfilScreen(authRepository: widget.authRepository),

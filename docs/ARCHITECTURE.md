@@ -101,7 +101,36 @@
 de widgets de auth_screen.dart queda en observación; el archivo
 creció con _DivisorO y _BotonGoogle — evaluar extracción en V4/V5
 si se agregan más elementos.
-### Vertical 4 — Perfil financiero → pendiente
+
+
+### Vertical 4 — Perfil financiero
+**Estado: CERTIFICADA**
+
+✔ FinancialProfile + offeredAt (distinción omitido/desconocido)
+✔ OnboardingStatus derivado del modelo (unknown/notOffered/
+  offered/completed)
+✔ SharedPreferencesFinancialProfileRepository (get-or-create;
+  contrato intacto con Future<FinancialProfile?>)
+✔ FinancialProfileNotifier + FormViewModel (Reglas 4 y 5)
+✔ Pantalla de perfil guiada: Continuar / Lo haré después
+✔ StartupRouteResolver extendido (sigue función pura; recibe
+  OnboardingStatus resuelto, no campos crudos)
+✔ Integración mínima en Home: ingreso declarado visible
+✔ Certificado: primera oferta única, posposición persistente,
+  no reinterrumpe tras logout/login, declarado sobrevive cold-start
+
+**Decisiones de producto V4:**
+- El perfil existe siempre (empty() en primer uso); la app nunca
+  maneja "sin perfil", solo completed true/false.
+- FlowWise guía, no obliga: todos los campos omitibles.
+- Sin perfil no se bloquea nada; se degradan capacidades.
+- El flujo se ofrece UNA vez por cuenta-dispositivo (offeredAt).
+- El pendiente vivirá como FinancialDecision (Sprint 4).
+- Integración perfil ↔ Engine pospuesta a Sprint 4 (un solo ciclo:
+  presupuesto declarado + proyección payDay +
+  CompleteProfileDecisionRule con prioridad dinámica).
+
+
 ### Vertical 5 — Home conectado → pendiente
 
 ## Deuda técnica activa
@@ -118,3 +147,5 @@ si se agregan más elementos.
 - Ícono oficial de Google (branding guidelines) — pulido visual
 - BUNDLE_ID com.example.flowwise → cambiar antes de App Store
   (requiere re-registrar app en Firebase) — pre-lanzamiento
+  - Elevados a candidatos Sprint 4: separador de miles en montos,
+  teclado tapa formulario de registro, pantalla de Movimientos.

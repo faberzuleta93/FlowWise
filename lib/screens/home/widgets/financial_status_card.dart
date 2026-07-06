@@ -8,12 +8,14 @@ class FinancialStatusCard extends StatelessWidget {
   final double ingresosMes;
   final double gastosMes;
   final double balance;
+  final double? ingresoDeclarado; // Campo añadido
 
   const FinancialStatusCard({
     super.key,
     required this.ingresosMes,
     required this.gastosMes,
     required this.balance,
+    this.ingresoDeclarado, // Constructor actualizado
   });
 
   @override
@@ -22,9 +24,10 @@ class FinancialStatusCard extends StatelessWidget {
       pregunta: '¿Cómo estoy?',
       child: Row(
         children: [
+          // _StatItem actualizado
           _StatItem(
-            label: 'Ingresos',
-            valor: ingresosMes,
+            label: ingresoDeclarado != null ? 'Declarados' : 'Ingresos',
+            valor: ingresoDeclarado ?? ingresosMes,
             color: AppColors.accent,
             icono: '📈',
           ),
