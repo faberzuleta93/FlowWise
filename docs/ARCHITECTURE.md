@@ -26,6 +26,8 @@
 - YAGNI: no abstraer antes de tener dos consumidores reales.
 - Commit local = checkpoint arquitectónico. Push = checkpoint
   funcional (vertical certificada).
+  - "A partir de la base construida, una vertical bien certificada
+  vale más que dos implementadas a toda velocidad."
 
 ## Auditorías recurrentes
 
