@@ -8,11 +8,23 @@ class DailySpendingCard extends StatelessWidget {
   final double disponibleHoy;
   final double sinAsignar;
 
+  /// Días hasta el próximo ingreso esperado. Null → sin proyección
+  /// (el horizonte es el fin de mes y no se menciona el pago).
+  final int? diasHastaPago;
+
   const DailySpendingCard({
     super.key,
     required this.disponibleHoy,
     required this.sinAsignar,
+    this.diasHastaPago,
   });
+
+  String get _labelDisponible {
+    final dias = diasHastaPago;
+    if (dias == null) return 'Disponible hoy';
+    if (dias == 0) return 'Disponible hoy · tu pago es hoy';
+    return 'Disponible hoy · $dias días para tu pago';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +33,7 @@ class DailySpendingCard extends StatelessWidget {
       child: Column(
         children: [
           _MoneyRow(
-            label: 'Disponible hoy',
+            label: _labelDisponible,
             valor: disponibleHoy,
             color: AppColors.accent,
             grande: true,
@@ -59,7 +71,7 @@ class _MoneyRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTypography.caption()),
+        Flexible(child: Text(label, style: AppTypography.caption())),
         Text(
           formatCurrency(valor),
           style: grande

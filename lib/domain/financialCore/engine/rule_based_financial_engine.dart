@@ -51,7 +51,13 @@ class RuleBasedFinancialEngine implements FinancialEngine {
       monthSummary,
       declaredMonthlyIncome: profile?.monthlyIncome,
     );
-    final liquidity = _rules.calculateLiquidity(movements, budget);
+    final projection = _rules.calculateProjection(budget, profile);
+    final liquidity = _rules.calculateLiquidity(
+      movements,
+      budget,
+      income: profile?.monthlyIncome ?? monthSummary.totalIncome,
+      daysUntilNextIncome: projection.daysUntilNextIncome,
+    );
     final wealth = _rules.calculateWealth(movements);
     final health = _rules.calculateHealth(monthSummary, budget);
     final momentum = _rules.calculateMomentum(monthSummary);
@@ -61,6 +67,7 @@ class RuleBasedFinancialEngine implements FinancialEngine {
       year: year,
       monthSummary: monthSummary,
       liquidity: liquidity,
+      projection: projection,
       budget: budget,
       wealth: wealth,
       health: health,

@@ -35,6 +35,13 @@ evolución.
    crece verticalmente (contexto más rico), no horizontalmente
    (responsabilidades nuevas).
 
+5. **El Engine solo proyecta aquello cuya hipótesis puede
+   explicar.** Las proyecciones son cálculos condicionales, no
+   predicciones: "al ritmo actual, se agotaría alrededor del 22",
+   nunca "se agotará el 22". FlowWise explica hipótesis; no afirma
+   futuros. La hipótesis (ritmo observado, días transcurridos)
+   debe ser siempre enunciable.
+
 ## Decisiones derivadas
 
 - El perfil entra al Engine como PARÁMETRO de recalculate/process,
@@ -54,13 +61,20 @@ evolución.
   oportuna, no repetitiva, relevante para el objetivo financiero
   del usuario. Lo informativo sin acción no entra a la tarjeta
   "¿Qué debo hacer ahora?".
-
 - La condición de planificación es el dato, no el estado
   administrativo: se usa el plan cuando monthlyIncome != null,
   no cuando completed == true. BudgetBasis (declaredPlan /
   registeredIncome) se modela como enum del dominio, no como
   booleano de implementación, y se construye junto con el Budget
   (el objeto explica completamente su origen).
+ - ProjectionState separado de LiquidityState: la liquidez describe
+  el presente; la proyección describe un escenario. Son tiempos
+  distintos del dominio — la separación tiene responsabilidad
+  propia hoy, no es anticipación.
+- V2 proyecta solo con payFrequency == monthly, verificado
+  explícitamente (no asumido). Semanal/quincenal/irregular quedan
+  en backlog con sus preguntas abiertas (¿cuál es "el próximo"
+  pago?, ¿liquidez entre dos pagos?).
 
 ## Modos de operación (matriz declarado × registrado)
 

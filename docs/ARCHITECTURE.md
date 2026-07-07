@@ -217,7 +217,27 @@ formulario, pantalla de Movimientos.
 ✔ Certificado: modo plan (bloques 50/30/20 sobre declarado, etiqueta
   Plan, persistencia en cold-start) y modo medición (regresión cero)
 
-### V2 — Proyecciones → pendiente
+### V2 — Proyecciones
+**Estado: CERTIFICADA**
+
+✔ ProjectionState: escenarios separados del presente
+  (LiquidityState = presente; ProjectionState = escenario;
+  tiempos distintos del dominio)
+✔ Liquidez con horizonte real: disponible hasta el próximo
+  ingreso esperado, degradación elegante a fin de mes
+✔ Regla de fechas determinista: payDay este mes si no ha pasado,
+  mes siguiente si pasó; payDay 31 = último día en meses cortos
+✔ Proyección de agotamiento por bloque al ritmo propio observado
+  (calculada, sin UI: su consumidor es la V3)
+✔ Solo payFrequency == monthly, verificado explícitamente
+  (silencio no es soporte); semanal/quincenal en backlog
+✔ Pagada la ingeniería inversa del ingreso en calculateLiquidity
+  (recibe income como parámetro)
+✔ Principio 5 al ADR-0002: el Engine solo proyecta hipótesis
+  enunciables ("al ritmo actual, se agotaría alrededor del...")
+✔ Certificado: horizonte de 24 días con payDay 30, persistencia
+  en cold-start, modo degradado validado por lógica
+  
 ### V3 — Decisiones inteligentes → pendiente
 ### V4 — Pulido de experiencia → pendiente
 

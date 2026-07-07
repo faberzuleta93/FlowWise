@@ -6,6 +6,8 @@ import '../../models/budget_state.dart';
 import '../../models/wealth_state.dart';
 import '../../models/financial_health.dart';
 import '../../models/financial_momentum.dart';
+import '../../models/projection_state.dart';
+import '../../models/financial_profile.dart';
 
 class FinancialRulesEngine {
   MonthSummary calculateMonthSummary(List<FinancialMovement> movements) {
@@ -64,25 +66,96 @@ class FinancialRulesEngine {
   // liquidez recibiendo el contexto directamente.
   LiquidityState calculateLiquidity(
     List<FinancialMovement> movements,
-    BudgetState budget,
-  ) {
-    final income = budget.essentials.allocated / 0.50;
+    BudgetState budget, {
+    required double income,
+    int? daysUntilNextIncome,
+  }) {
     final totalSpent =
         budget.essentials.spent + budget.lifestyle.spent + budget.future.spent;
 
     final now = DateTime.now();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-    final daysRemaining = daysInMonth - now.day + 1;
+    final daysRemainingInMonth = daysInMonth - now.day + 1;
+
+    // Horizonte de liquidez (ADR-0002): el próximo ingreso esperado
+    // cuando se conoce; el fin de mes como degradación elegante.
+    // "¿Cuánto puedo gastar hasta que vuelva a entrar dinero?"
+    final horizon = daysUntilNextIncome ?? daysRemainingInMonth;
+    final effectiveHorizon = horizon < 1 ? 1 : horizon;
 
     final lifestyleRemaining = budget.lifestyle.remaining;
-    final availableToday =
-        daysRemaining > 0 ? lifestyleRemaining / daysRemaining : 0.0;
+    final availableToday = lifestyleRemaining / effectiveHorizon;
 
     return LiquidityState(
       availableToday: availableToday,
       unassignedMoney: income - totalSpent,
       balanceByAccount: _calculateAccountBalances(movements),
     );
+  }
+
+  /// Proyecciones al ritmo observado (ADR-0002, principio 5).
+  /// Solo proyecta el ingreso con payFrequency == monthly,
+  /// verificado explícitamente — silencio no es soporte.
+  ProjectionState calculateProjection(
+    BudgetState budget,
+    FinancialProfile? profile,
+  ) {
+    final now = DateTime.now();
+    final daysElapsed = now.day;
+
+    final totalSpent =
+        budget.essentials.spent + budget.lifestyle.spent + budget.future.spent;
+    final dailyRate = daysElapsed > 0 ? totalSpent / daysElapsed : 0.0;
+
+    // Proyección de ingreso: solo mensual con payDay conocido.
+    DateTime? nextIncome;
+    int? daysUntil;
+    final payDay = profile?.payDay;
+    if (profile?.payFrequency == PayFrequency.monthly && payDay != null) {
+      nextIncome = _nextIncomeDate(now, payDay);
+      daysUntil =
+          nextIncome.difference(DateTime(now.year, now.month, now.day)).inDays;
+    }
+
+    return ProjectionState(
+      daysUntilNextIncome: daysUntil,
+      nextIncomeDate: nextIncome,
+      dailySpendingRate: dailyRate,
+      essentialsDepletion: _depletionDate(budget.essentials, now, daysElapsed),
+      lifestyleDepletion: _depletionDate(budget.lifestyle, now, daysElapsed),
+      futureDepletion: _depletionDate(budget.future, now, daysElapsed),
+    );
+  }
+
+  /// Regla de fechas aprobada: si hoy <= payDay efectivo → este mes;
+  /// si ya pasó → el del mes siguiente. payDay 31 en meses cortos
+  /// se interpreta como el último día del mes.
+  DateTime _nextIncomeDate(DateTime now, int payDay) {
+    final lastDayThisMonth = DateTime(now.year, now.month + 1, 0).day;
+    final effectiveDay = payDay > lastDayThisMonth ? lastDayThisMonth : payDay;
+    if (now.day <= effectiveDay) {
+      return DateTime(now.year, now.month, effectiveDay);
+    }
+    final lastDayNextMonth = DateTime(now.year, now.month + 2, 0).day;
+    final effectiveNext = payDay > lastDayNextMonth ? lastDayNextMonth : payDay;
+    return DateTime(now.year, now.month + 1, effectiveNext);
+  }
+
+  /// Fecha estimada de agotamiento del bloque AL RITMO PROPIO del
+  /// bloque (su gasto / días transcurridos). Null si no se agota
+  /// manteniendo el ritmo, o si no hay ritmo observable.
+  DateTime? _depletionDate(BudgetBlock block, DateTime now, int daysElapsed) {
+    if (daysElapsed <= 0 || block.spent <= 0) return null;
+    if (block.remaining <= 0) return DateTime(now.year, now.month, now.day);
+    final blockDailyRate = block.spent / daysElapsed;
+    if (blockDailyRate <= 0) return null;
+    final daysToDepletion = (block.remaining / blockDailyRate).ceil();
+    final depletion = now.add(Duration(days: daysToDepletion));
+    // Solo es relevante si ocurre dentro del mes en curso.
+    if (depletion.month != now.month || depletion.year != now.year) {
+      return null;
+    }
+    return depletion;
   }
 
   WealthState calculateWealth(List<FinancialMovement> movements) {

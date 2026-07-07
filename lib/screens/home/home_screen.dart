@@ -120,6 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   DailySpendingCard(
                     disponibleHoy: state.liquidity.availableToday,
                     sinAsignar: state.liquidity.unassignedMoney,
+                    diasHastaPago: state.projection.daysUntilNextIncome,
                   ),
                   BudgetBlocksCard(
                     bloques: bloques,
