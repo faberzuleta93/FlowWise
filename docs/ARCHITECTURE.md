@@ -136,7 +136,38 @@ si se agregan más elementos.
   CompleteProfileDecisionRule con prioridad dinámica).
 
 
-### Vertical 5 — Home conectado → pendiente
+### Vertical 5 — Home conectado + Ownership
+**Estado: CERTIFICADA** (con salvedad documentada)
+
+✔ SharedPreferencesUserProfileRepository (persistencia únicamente;
+  no conoce Firebase ni AuthSession)
+✔ UserProfileNotifier: siembra del perfil desde la sesión
+  (responsabilidad del flujo post-auth, no del repositorio)
+✔ LocalMovementOwnershipService (key estable:
+  flowwise_movements_owner_uid = UserProfile.id)
+✔ MovementOwnershipNotifier separado de identidad (Regla 1)
+✔ Auto-claim: usuarios sin movimientos previos reclaman
+  silenciosamente; sus propios datos jamás disparan el diálogo
+✔ StartupRouteResolver: Auth → Ownership → Onboarding → Home
+  (3 estados exactos — en el umbral documentado del coordinador)
+✔ OwnershipDecisionScreen con confirmación explícita de borrado
+✔ HomeHeader conectado: nombre, inicial, premium reales
+  (deuda de Sprint 2 PAGADA)
+✔ Limpieza: memory_movement_repository.dart eliminado
+  (grep confirmó cero referencias)
+
+**Salvedad de certificación:** la lógica de ownership quedó
+certificada vía auto-claim (misma maquinaria); la UI de
+OwnershipDecisionScreen quedó validada por lógica pero pendiente
+de ejercitar visualmente — solo aparece en dispositivos con
+movimientos pre-auth, ventana que ya pasó en el dispositivo de
+desarrollo. Ejercitar cuando haya un caso real o en QA.
+
+**Limitación documentada (multi-cuenta):** con persistencia local
+mono-usuario, un segundo usuario en el mismo dispositivo vería
+los movimientos del primero (el owner uid se registra pero no se
+compara con el usuario actual). Se resuelve en el sprint de
+sincronización remota, junto con la limitación de multi-dispositivo.
 
 ## Deuda técnica activa
 
@@ -154,3 +185,43 @@ si se agregan más elementos.
   (requiere re-registrar app en Firebase) — pre-lanzamiento
   - Elevados a candidatos Sprint 4: separador de miles en montos,
   teclado tapa formulario de registro, pantalla de Movimientos.
+
+  ## Sprint 3 — CERRADO
+
+Las 5 verticales certificadas. La identidad del usuario existe:
+Splash → Welcome → Auth (Email + Google) → Ownership →
+Perfil financiero → Home con usuario real.
+
+Comprometido para Sprint 4: integración perfil ↔ Core (presupuesto
+declarado, proyección payDay, CompleteProfileDecisionRule con
+prioridad dinámica). Candidatos: separador de miles, teclado sobre
+formulario, pantalla de Movimientos.
+
+## Sprint 4 — El Core interpreta (en curso, por verticales)
+
+### V1 — El Engine interpreta el plan
+**Estado: CERTIFICADA**
+
+✔ Rename: FinancialEngineV1 → RuleBasedFinancialEngine (contrato
+  FinancialEngine intacto; nombres de comportamiento, no cronología)
+✔ FinancialProfile como parámetro de recalculate/process (ADR-0002:
+  contexto, nunca dependencia)
+✔ Presupuesto sobre ingreso declarado cuando monthlyIncome != null
+  (la condición es el dato, no el estado administrativo)
+✔ BudgetBasis (declaredPlan/registeredIncome) en el dominio: el
+  objeto explica su origen; la UI lo declara ("Plan" vs "Presup.")
+✔ Cableado en composition root: profileNotifier → financialNotifier
+  vía listener; los notifiers no se conocen entre sí
+✔ Clamp visual movido del modelo al widget: el badge puede mostrar
+  honestamente >100%; la barra se satura en 100%
+✔ Certificado: modo plan (bloques 50/30/20 sobre declarado, etiqueta
+  Plan, persistencia en cold-start) y modo medición (regresión cero)
+
+### V2 — Proyecciones → pendiente
+### V3 — Decisiones inteligentes → pendiente
+### V4 — Pulido de experiencia → pendiente
+
+**Backlog surgido en V1:** movimientos con fecha futura (ingresos
+anticipados, gastos programados) — requiere auditoría de producto
+propia (¿cuenta al registrarse o al ocurrir?); emparentado con
+UpcomingObligation.

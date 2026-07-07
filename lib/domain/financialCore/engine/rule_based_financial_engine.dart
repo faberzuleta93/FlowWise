@@ -1,16 +1,23 @@
 import '../../../domain/repositories/movement_repository.dart';
 import '../../models/financial_state.dart';
+import '../../models/financial_profile.dart';
 import '../rules/financial_rules_engine.dart';
 import '../decisions/decision_engine.dart';
 import '../decisions/decision_engine_impl.dart';
 import 'financial_engine.dart';
 
-class FinancialEngineV1 implements FinancialEngine {
+/// Motor financiero basado en reglas deterministas.
+///
+/// ADR-0002: interpreta la relación entre el plan (perfil) y la
+/// realidad (movimientos). El perfil entra como parámetro — el
+/// Engine calcula sobre un contexto, no usa colaboradores.
+/// Mismos movimientos + mismo perfil = misma respuesta, siempre.
+class RuleBasedFinancialEngine implements FinancialEngine {
   final MovementRepository _movementRepository;
   final FinancialRulesEngine _rules;
   final DecisionEngine _decisionEngine;
 
-  FinancialEngineV1({
+  RuleBasedFinancialEngine({
     required MovementRepository movementRepository,
   })  : _movementRepository = movementRepository,
         _rules = FinancialRulesEngine(),
@@ -20,11 +27,13 @@ class FinancialEngineV1 implements FinancialEngine {
   Future<FinancialState> process({
     required FinancialEvent event,
     required FinancialState currentState,
+    FinancialProfile? profile,
   }) async {
     await _persistEvent(event);
     return recalculate(
       month: currentState.month,
       year: currentState.year,
+      profile: profile,
     );
   }
 
@@ -32,11 +41,16 @@ class FinancialEngineV1 implements FinancialEngine {
   Future<FinancialState> recalculate({
     required int month,
     required int year,
+    FinancialProfile? profile,
   }) async {
     final movements = await _movementRepository.getByMonth(year, month);
 
     final monthSummary = _rules.calculateMonthSummary(movements);
-    final budget = _rules.calculateBudget(movements, monthSummary);
+    final budget = _rules.calculateBudget(
+      movements,
+      monthSummary,
+      declaredMonthlyIncome: profile?.monthlyIncome,
+    );
     final liquidity = _rules.calculateLiquidity(movements, budget);
     final wealth = _rules.calculateWealth(movements);
     final health = _rules.calculateHealth(monthSummary, budget);

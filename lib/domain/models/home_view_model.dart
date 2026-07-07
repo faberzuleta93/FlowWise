@@ -15,7 +15,10 @@ class BloquePresupuesto {
     required this.color,
   });
 
-  double get porcentaje => (gasto / max).clamp(0.0, 1.0);
+  /// Proporción gasto/presupuesto SIN recortar: el badge debe poder
+  /// mostrar honestamente un 130%. El recorte visual (barra) es
+  /// responsabilidad del widget, no del modelo.
+  double get porcentaje => max > 0 ? gasto / max : 0.0;
   double get saldo => max - gasto;
   bool get excedido => gasto > max;
   bool get enRiesgo => porcentaje >= 0.85 && !excedido;

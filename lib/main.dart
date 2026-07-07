@@ -10,7 +10,7 @@ import 'data/repositories/firebase_authentication_repository.dart';
 import 'data/repositories/shared_preferences_financial_profile_repository.dart';
 import 'data/repositories/shared_preferences_user_profile_repository.dart';
 import 'data/services/local_movement_ownership_service.dart';
-import 'domain/financialCore/engine/financial_engine_v1.dart';
+import 'domain/financialCore/engine/rule_based_financial_engine.dart';
 import 'domain/repositories/authentication_repository.dart';
 import 'navigation/app_root.dart';
 import 'state/financial_state_notifier.dart';
@@ -37,7 +37,7 @@ void main() async {
   // Core Financiero
   final datasource = SharedPreferencesMovementDatasource();
   final repository = LocalMovementRepository(datasource: datasource);
-  final engine = FinancialEngineV1(movementRepository: repository);
+  final engine = RuleBasedFinancialEngine(movementRepository: repository);
   final financialNotifier = FinancialStateNotifier(engine: engine);
 
   // Autenticación
@@ -48,6 +48,12 @@ void main() async {
   final profileRepository = SharedPreferencesFinancialProfileRepository();
   final profileNotifier =
       FinancialProfileNotifier(repository: profileRepository);
+
+  // Cableado plan → cálculo (ADR-0002): el composition root empuja
+  // el perfil como dato; los notifiers no se conocen entre sí.
+  profileNotifier.addListener(() {
+    financialNotifier.setProfile(profileNotifier.profile);
+  });
 
   // Identidad del usuario
   final userProfileRepository = SharedPreferencesUserProfileRepository();

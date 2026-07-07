@@ -121,7 +121,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     disponibleHoy: state.liquidity.availableToday,
                     sinAsignar: state.liquidity.unassignedMoney,
                   ),
-                  BudgetBlocksCard(bloques: bloques),
+                  BudgetBlocksCard(
+                    bloques: bloques,
+                    basis: state.budget.basis,
+                  ),
                   if (movimientos.isNotEmpty)
                     RecentMovementsCard(movimientos: movimientos),
                   if (movimientos.isEmpty) const _EmptyMovements(),

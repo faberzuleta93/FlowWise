@@ -27,9 +27,13 @@ class FinancialRulesEngine {
 
   BudgetState calculateBudget(
     List<FinancialMovement> movements,
-    MonthSummary summary,
-  ) {
-    final income = summary.totalIncome;
+    MonthSummary summary, {
+    double? declaredMonthlyIncome,
+  }) {
+    // ADR-0002: lo declarado planifica, lo registrado mide.
+    // La condición es el DATO (monthlyIncome != null), no el
+    // estado administrativo del onboarding. Nunca se mezclan.
+    final income = declaredMonthlyIncome ?? summary.totalIncome;
 
     final essentialsSpent =
         _spentInBlock(movements, BudgetBlockType.esenciales);
@@ -49,9 +53,15 @@ class FinancialRulesEngine {
       future: future,
       semaforo: _calculateSemaforo(essentials, lifestyle, future),
       thermometerValue: _calculateThermometer(summary),
+      basis: declaredMonthlyIncome != null
+          ? BudgetBasis.declaredPlan
+          : BudgetBasis.registeredIncome,
     );
   }
 
+// TODO(Sprint4-V2): ingeniería inversa frágil del ingreso
+  // (allocated / 0.50). La V2 de proyecciones reescribe la
+  // liquidez recibiendo el contexto directamente.
   LiquidityState calculateLiquidity(
     List<FinancialMovement> movements,
     BudgetState budget,
