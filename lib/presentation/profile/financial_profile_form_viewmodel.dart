@@ -7,8 +7,7 @@ enum ProfileFormStatus { idle, saving, error }
 /// ViewModel del formulario de perfil financiero inicial.
 ///
 /// Propietario (Regla 4): FinancialProfileScreen lo crea y destruye.
-/// No navega (Regla 5): al completar o posponer, el
-/// FinancialProfileNotifier notifica y AppRoot re-resuelve la ruta.
+/// No navega (Regla 5): AppRoot reacciona al cambio de estado.
 class FinancialProfileFormViewModel extends ChangeNotifier {
   final FinancialProfileNotifier _notifier;
 
@@ -26,7 +25,15 @@ class FinancialProfileFormViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isSaving => _status == ProfileFormStatus.saving;
   PayFrequency get payFrequency => _payFrequency;
+
+  /// Solo irregular no pregunta día de pago.
   bool get asksPayDay => _payFrequency != PayFrequency.irregular;
+
+  /// V2.1: el selector cambia de tipo según la frecuencia.
+  bool get asksWeekday => _payFrequency == PayFrequency.weekly;
+  bool get asksDayOfMonth =>
+      _payFrequency == PayFrequency.monthly ||
+      _payFrequency == PayFrequency.biweekly;
 
   void updateIncome(String value) {
     final cleaned = value.replaceAll(RegExp(r'[^\d]'), '');
@@ -44,8 +51,12 @@ class FinancialProfileFormViewModel extends ChangeNotifier {
     _payDay = (parsed != null && parsed >= 1 && parsed <= 31) ? parsed : null;
   }
 
-  /// Todos los campos son opcionales por decisión de producto:
-  /// FlowWise guía, no obliga.
+  /// V2.1: selector de día de semana (1=lunes...7=domingo).
+  void updateWeekday(int weekday) {
+    _payDay = weekday;
+    notifyListeners();
+  }
+
   Future<void> complete() async {
     _status = ProfileFormStatus.saving;
     notifyListeners();

@@ -107,14 +107,20 @@ class FinancialRulesEngine {
         budget.essentials.spent + budget.lifestyle.spent + budget.future.spent;
     final dailyRate = daysElapsed > 0 ? totalSpent / daysElapsed : 0.0;
 
-    // Proyección de ingreso: solo mensual con payDay conocido.
+    // ADR-0002 principio 7: el horizonte es el próximo ingreso
+    // esperado, no el fin de calendario. Colombia: mensual,
+    // quincenal y semanal son de primera clase; irregular no
+    // proyecta ingreso.
     DateTime? nextIncome;
     int? daysUntil;
-    final payDay = profile?.payDay;
-    if (profile?.payFrequency == PayFrequency.monthly && payDay != null) {
-      nextIncome = _nextIncomeDate(now, payDay);
-      daysUntil =
-          nextIncome.difference(DateTime(now.year, now.month, now.day)).inDays;
+    if (profile?.payFrequency != null &&
+        profile?.payFrequency != PayFrequency.irregular) {
+      nextIncome = _nextIncomeDate(now, profile!.payFrequency, profile.payDay);
+      if (nextIncome != null) {
+        daysUntil = nextIncome
+            .difference(DateTime(now.year, now.month, now.day))
+            .inDays;
+      }
     }
 
     return ProjectionState(
@@ -127,10 +133,26 @@ class FinancialRulesEngine {
     );
   }
 
-  /// Regla de fechas aprobada: si hoy <= payDay efectivo → este mes;
-  /// si ya pasó → el del mes siguiente. payDay 31 en meses cortos
-  /// se interpreta como el último día del mes.
-  DateTime _nextIncomeDate(DateTime now, int payDay) {
+  /// Calcula la fecha del próximo ingreso esperado según la
+  /// frecuencia declarada. Cada frecuencia tiene su propio
+  /// intérprete de payDay (ver doc de FinancialProfile).
+  /// Retorna null si la frecuencia es irregular o no hay payDay.
+  DateTime? _nextIncomeDate(
+    DateTime now,
+    PayFrequency frequency,
+    int? payDay,
+  ) {
+    if (payDay == null) return null;
+    return switch (frequency) {
+      PayFrequency.monthly => _nextMonthly(now, payDay),
+      PayFrequency.biweekly => _nextBiweekly(now, payDay),
+      PayFrequency.weekly => _nextWeekly(now, payDay),
+      PayFrequency.irregular => null,
+    };
+  }
+
+  /// payDay = día del mes. 31 en meses cortos = último día.
+  DateTime _nextMonthly(DateTime now, int payDay) {
     final lastDayThisMonth = DateTime(now.year, now.month + 1, 0).day;
     final effectiveDay = payDay > lastDayThisMonth ? lastDayThisMonth : payDay;
     if (now.day <= effectiveDay) {
@@ -139,6 +161,42 @@ class FinancialRulesEngine {
     final lastDayNextMonth = DateTime(now.year, now.month + 2, 0).day;
     final effectiveNext = payDay > lastDayNextMonth ? lastDayNextMonth : payDay;
     return DateTime(now.year, now.month + 1, effectiveNext);
+  }
+
+  /// payDay = primer pago del mes. El segundo se deriva: 15 días
+  /// después, saturado al último día del mes (nunca cae en el
+  /// mes siguiente). Ej: primaryPayDay=15 → segundo pago=30
+  /// (o 28/29/31 según el mes).
+  DateTime _nextBiweekly(DateTime now, int primaryPayDay) {
+    final lastDayThisMonth = DateTime(now.year, now.month + 1, 0).day;
+    final firstPay =
+        primaryPayDay > lastDayThisMonth ? lastDayThisMonth : primaryPayDay;
+    final secondPayRaw = firstPay + 15;
+    final secondPay =
+        secondPayRaw > lastDayThisMonth ? lastDayThisMonth : secondPayRaw;
+
+    final candidates = <DateTime>[
+      DateTime(now.year, now.month, firstPay),
+      DateTime(now.year, now.month, secondPay),
+    ];
+    for (final candidate in candidates) {
+      if (!candidate.isBefore(DateTime(now.year, now.month, now.day))) {
+        return candidate;
+      }
+    }
+    // Ambos pagos de este mes ya pasaron: el primero del siguiente.
+    final lastDayNextMonth = DateTime(now.year, now.month + 2, 0).day;
+    final nextFirstPay =
+        primaryPayDay > lastDayNextMonth ? lastDayNextMonth : primaryPayDay;
+    return DateTime(now.year, now.month + 1, nextFirstPay);
+  }
+
+  /// payDay = día de la semana en ISO 8601 (1=lunes...7=domingo,
+  /// igual que DateTime.weekday).
+  DateTime _nextWeekly(DateTime now, int weekday) {
+    final today = DateTime(now.year, now.month, now.day);
+    final daysUntil = (weekday - today.weekday) % 7;
+    return today.add(Duration(days: daysUntil));
   }
 
   /// Fecha estimada de agotamiento del bloque AL RITMO PROPIO del

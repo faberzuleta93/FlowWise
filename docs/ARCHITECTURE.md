@@ -237,6 +237,25 @@ formulario, pantalla de Movimientos.
   enunciables ("al ritmo actual, se agotaría alrededor del...")
 ✔ Certificado: horizonte de 24 días con payDay 30, persistencia
   en cold-start, modo degradado validado por lógica
+
+### V2.1 — Frecuencias colombianas
+**Estado: CERTIFICADA**
+
+✔ Decisión de producto: FlowWise nace para Colombia — mensual,
+  quincenal y semanal son requisito de primera clase
+✔ payDay con semántica documentada por frecuencia en el modelo
+  (día del mes / primer pago quincenal / día ISO de semana)
+✔ Un intérprete por frecuencia en el Engine (_nextMonthly,
+  _nextBiweekly, _nextWeekly); sin doble significado silencioso
+✔ Quincenal deriva el segundo pago (+15 días, saturado a fin de
+  mes) desde un único campo
+✔ Formulario adaptativo: selector de día del mes o de día de
+  semana según la frecuencia elegida
+✔ PaySchedule (Value Object) documentado como evolución en
+  ADR-0002 — se adopta cuando el campo único genere fricción real
+✔ Certificado manualmente: quincenal (primer y segundo pago),
+  semanal (incluyendo "tu pago es hoy"), mensual (regresión cero),
+  irregular (degradación elegante)
   
 ### V3 — Decisiones inteligentes → pendiente
 ### V4 — Pulido de experiencia → pendiente

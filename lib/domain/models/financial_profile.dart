@@ -2,39 +2,46 @@
 enum PayFrequency { weekly, biweekly, monthly, irregular }
 
 /// Estado del onboarding financiero, derivado del perfil.
-///
-/// unknown: el perfil aún no se ha cargado (solo lo usa la capa
-/// de estado mientras resuelve; nunca se deriva del modelo).
 enum OnboardingStatus { unknown, notOffered, offered, completed }
 
 /// Situación financiera declarada por el usuario.
 ///
 /// Pertenece al Core Financiero, no a la identidad: puede cambiar
 /// con el tiempo (nuevo empleo, nuevo salario) sin afectar quién
-/// es el usuario. El FinancialEngine la usará para proyecciones.
+/// es el usuario. El FinancialEngine la usa para proyecciones.
 ///
 /// Nota semántica: un campo en null NO distingue por sí solo entre
-/// "omitido" (el usuario no quiso responder) y "desconocido" (nunca
-/// se preguntó). La distinción la da [offeredAt]: si es null, nunca
-/// se preguntó; si tiene valor y el campo es null, fue omitido.
+/// "omitido" y "desconocido". La distinción la da [offeredAt]: si
+/// es null, nunca se preguntó; si tiene valor y el campo es null,
+/// fue omitido.
+///
+/// SEMÁNTICA DE [payDay] SEGÚN [payFrequency] (decisión V2.1,
+/// FlowWise nace para Colombia — mensual/quincenal/semanal son
+/// requisito de primera clase):
+/// - monthly: día del mes (1-31). 31 en meses cortos = último día.
+/// - biweekly: PRIMER día de pago del mes (1-31). El segundo pago
+///   se deriva automáticamente (15 días después, saturado al fin
+///   de mes) — no se almacenan dos campos.
+/// - weekly: día de la semana en ISO 8601 (1=lunes...7=domingo,
+///   igual que DateTime.weekday — cero fricción de conversión).
+/// - irregular: payDay no aplica; sin proyección de ingreso.
+///
+/// Evolución documentada (ADR-0002): un Value Object PaySchedule
+/// (monthly(day)/biweekly(firstDay)/weekly(weekday)) sería más
+/// expresivo, pero es cirugía de modelo+mapper+formulario+migración.
+/// Se adopta cuando el doble significado de payDay genere fricción
+/// real, no por anticipación.
 class FinancialProfile {
-  /// Ingreso mensual aproximado. Null → omitido o desconocido
-  /// (ver nota semántica de la clase).
   final double? monthlyIncome;
 
   final PayFrequency payFrequency;
 
-  /// Día del mes en que recibe su pago principal (1-31).
-  /// Null cuando payFrequency es irregular o se omitió.
+  /// Ver semántica por frecuencia en el doc de la clase.
+  /// Null cuando se omitió o payFrequency es irregular.
   final int? payDay;
 
-  /// True cuando el usuario completó el perfil financiero inicial.
-  /// False cuando eligió "Lo haré después" o nunca se le ofreció.
   final bool completed;
 
-  /// Momento en que se le mostró el flujo de perfil por primera
-  /// vez. Null → nunca se le ha ofrecido. El flujo guiado se
-  /// muestra una sola vez por cuenta-dispositivo.
   final DateTime? offeredAt;
 
   final DateTime createdAt;
@@ -50,7 +57,6 @@ class FinancialProfile {
     required this.updatedAt,
   });
 
-  /// Perfil vacío para usuarios que aún no pasan por el onboarding.
   factory FinancialProfile.empty() {
     final now = DateTime.now();
     return FinancialProfile(
@@ -60,7 +66,6 @@ class FinancialProfile {
     );
   }
 
-  /// Estado del onboarding derivado del propio perfil.
   OnboardingStatus get onboardingStatus {
     if (completed) return OnboardingStatus.completed;
     return offeredAt == null

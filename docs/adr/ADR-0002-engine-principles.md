@@ -42,6 +42,18 @@ evolución.
    futuros. La hipótesis (ritmo observado, días transcurridos)
    debe ser siempre enunciable.
 
+6. **El Engine interpreta; las reglas deciden.** Las DecisionRule
+   son puras y síncronas sobre el FinancialState: nunca hacen I/O.
+   Si una regla necesita conocimiento nuevo (ej. tendencia de
+   meses previos), el Engine lo calcula y lo expone como
+   interpretación en el estado.
+
+7. **Las decisiones se comparan contra el próximo ingreso
+   esperado, no contra el fin del calendario.** El tiempo
+   financiero relevante termina cuando vuelve a entrar liquidez.
+   El calendario organiza los reportes; el flujo de ingresos
+   organiza las decisiones.
+
 ## Decisiones derivadas
 
 - El perfil entra al Engine como PARÁMETRO de recalculate/process,
@@ -75,6 +87,24 @@ evolución.
   explícitamente (no asumido). Semanal/quincenal/irregular quedan
   en backlog con sus preguntas abiertas (¿cuál es "el próximo"
   pago?, ¿liquidez entre dos pagos?).
+- Decisión de producto (mercado): FlowWise nace para Colombia.
+  Mensual, quincenal y semanal son requisito de primera clase;
+  solo irregular queda fuera de proyección.
+- Quincenal se modela con primaryPayDay: el segundo pago se
+  deriva (15 → 30/último día). No se almacenan dos campos.
+- Evolución documentada: PaySchedule como Value Object
+  (monthly(day)/biweekly(firstDay)/weekly(weekday)) cuando el
+  doble significado de payDay genere fricción real. Hoy: campo
+  único con semántica por frecuencia, documentada en el modelo
+  y encapsulada en un único intérprete.
+- V2.1: FlowWise nace para Colombia. Mensual, quincenal y semanal
+  son requisito de primera clase (irregular queda fuera de
+  proyección). payDay tiene semántica documentada por frecuencia
+  en el propio modelo (día del mes / primer pago quincenal / día
+  ISO de la semana) — un único intérprete por frecuencia en el
+  Engine, sin doble significado silencioso.
+- Quincenal deriva el segundo pago (+15 días, saturado a fin de
+  mes) desde un único campo — no se almacenan dos payDay.
 
 ## Modos de operación (matriz declarado × registrado)
 

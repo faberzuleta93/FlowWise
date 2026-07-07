@@ -73,18 +73,33 @@ class _FinancialProfileScreenState extends State<FinancialProfileScreen> {
                     selected: _vm.payFrequency,
                     onChanged: _vm.updateFrequency,
                   ),
-                  if (_vm.asksPayDay) ...[
+                  if (_vm.asksDayOfMonth) ...[
                     const SizedBox(height: 20),
-                    Text('¿Qué día del mes te pagan? (1-31)',
-                        style: AppTypography.caption()),
+                    Text(
+                      _vm.payFrequency == PayFrequency.biweekly
+                          ? '¿Qué día es tu PRIMER pago del mes? (1-31)'
+                          : '¿Qué día del mes te pagan? (1-31)',
+                      style: AppTypography.caption(),
+                    ),
                     const SizedBox(height: 6),
                     TextField(
                       onChanged: _vm.updatePayDay,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       style: AppTypography.bodyMedium(),
-                      decoration: _inputDecoration('Ej: 30'),
+                      decoration: _inputDecoration(
+                        _vm.payFrequency == PayFrequency.biweekly
+                            ? 'Ej: 15'
+                            : 'Ej: 30',
+                      ),
                     ),
+                  ],
+                  if (_vm.asksWeekday) ...[
+                    const SizedBox(height: 20),
+                    Text('¿Qué día de la semana te pagan?',
+                        style: AppTypography.caption()),
+                    const SizedBox(height: 10),
+                    _WeekdaySelector(onChanged: _vm.updateWeekday),
                   ],
                   if (_vm.errorMessage != null) ...[
                     const SizedBox(height: 14),
@@ -184,6 +199,59 @@ class _FrequencySelector extends StatelessWidget {
                   color: activo ? AppColors.accent : AppColors.border),
             ),
             child: Text(_labels[f]!,
+                style: AppTypography.bodyMedium(
+                    color: activo ? AppColors.accent : AppColors.textPrimary)),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _WeekdaySelector extends StatefulWidget {
+  final ValueChanged<int> onChanged;
+  const _WeekdaySelector({required this.onChanged});
+
+  @override
+  State<_WeekdaySelector> createState() => _WeekdaySelectorState();
+}
+
+class _WeekdaySelectorState extends State<_WeekdaySelector> {
+  int? _selected;
+
+  static const _dias = {
+    1: 'Lun',
+    2: 'Mar',
+    3: 'Mié',
+    4: 'Jue',
+    5: 'Vie',
+    6: 'Sáb',
+    7: 'Dom',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _dias.entries.map((e) {
+        final activo = e.key == _selected;
+        return GestureDetector(
+          onTap: () {
+            setState(() => _selected = e.key);
+            widget.onChanged(e.key);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: activo
+                  ? AppColors.accent.withValues(alpha: 0.15)
+                  : AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: activo ? AppColors.accent : AppColors.border),
+            ),
+            child: Text(e.value,
                 style: AppTypography.bodyMedium(
                     color: activo ? AppColors.accent : AppColors.textPrimary)),
           ),
