@@ -62,3 +62,10 @@ class RegisterMovementAction extends DecisionAction {
   final String reason;
   const RegisterMovementAction({required this.reason});
 }
+
+/// El usuario debería actualizar su perfil financiero
+/// (discrepancia sostenida entre declarado y registrado).
+class UpdateFinancialProfileAction extends DecisionAction {
+  final double suggestedIncome;
+  const UpdateFinancialProfileAction({required this.suggestedIncome});
+}

@@ -69,6 +69,7 @@ class DecisionUiMapper {
       PayCreditAction() => 'Ir al crédito',
       ContributeToGoalAction() => 'Aportar',
       RegisterMovementAction() => 'Registrar',
+      UpdateFinancialProfileAction() => 'Actualizar',
     };
   }
 }

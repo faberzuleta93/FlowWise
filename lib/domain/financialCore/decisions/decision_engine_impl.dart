@@ -7,6 +7,10 @@ import 'decision_rules/liquidity_decision_rule.dart';
 import 'decision_rules/obligations_decision_rule.dart';
 import 'decision_rules/goals_decision_rule.dart';
 import 'decision_rules/momentum_decision_rule.dart';
+import 'decision_rules/profile_decision_rule.dart';
+import 'decision_rules/expected_income_decision_rule.dart';
+import 'decision_rules/income_alignment_decision_rule.dart';
+import 'decision_rules/block_depletion_decision_rule.dart';
 
 /// Orquesta la ejecución de todas las reglas de decisión.
 /// No contiene lógica financiera — solo coordina y consolida.
@@ -22,6 +26,10 @@ class DecisionEngineImpl implements DecisionEngine {
           ObligationsDecisionRule(),
           GoalsDecisionRule(),
           MomentumDecisionRule(),
+          ProfileDecisionRule(),
+          ExpectedIncomeDecisionRule(),
+          IncomeAlignmentDecisionRule(),
+          BlockDepletionDecisionRule(),
         ];
 
   /// Constructor para testing — permite inyectar reglas mock.

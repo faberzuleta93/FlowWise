@@ -9,6 +9,7 @@ import 'goal_progress.dart';
 import 'upcoming_obligation.dart';
 import 'financial_movement.dart';
 import 'projection_state.dart';
+import 'decision_context.dart';
 
 class FinancialState {
   final MonthSummary monthSummary;
@@ -21,6 +22,11 @@ class FinancialState {
   /// Escenarios condicionales del Engine (ADR-0002, principio 5).
   /// La liquidez describe el presente; la proyección, un escenario.
   final ProjectionState projection;
+
+  /// Interpretaciones auxiliares para las DecisionRule
+  /// (ADR-0002, principios 6 y 8): el Engine interpreta y expone
+  /// modelos de dominio; las reglas deciden y explican.
+  final DecisionContext decisionContext;
 
   final List<UpcomingObligation> obligations;
   final List<GoalProgress> goals;
@@ -38,6 +44,7 @@ class FinancialState {
     required this.health,
     required this.momentum,
     required this.projection,
+    required this.decisionContext,
     required this.obligations,
     required this.goals,
     required this.recentMovements,
@@ -57,6 +64,7 @@ class FinancialState {
       health: FinancialHealth.initial(),
       momentum: FinancialMomentum.initial(),
       projection: ProjectionState.empty(),
+      decisionContext: DecisionContext.empty(),
       obligations: [],
       goals: [],
       recentMovements: [],
@@ -75,6 +83,7 @@ class FinancialState {
     FinancialHealth? health,
     FinancialMomentum? momentum,
     ProjectionState? projection,
+    DecisionContext? decisionContext,
     List<UpcomingObligation>? obligations,
     List<GoalProgress>? goals,
     List<FinancialMovement>? recentMovements,
@@ -91,6 +100,7 @@ class FinancialState {
       health: health ?? this.health,
       momentum: momentum ?? this.momentum,
       projection: projection ?? this.projection,
+      decisionContext: decisionContext ?? this.decisionContext,
       obligations: obligations ?? this.obligations,
       goals: goals ?? this.goals,
       recentMovements: recentMovements ?? this.recentMovements,

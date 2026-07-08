@@ -54,6 +54,14 @@ evolución.
    El calendario organiza los reportes; el flujo de ingresos
    organiza las decisiones.
 
+8. **El Engine solo expone modelos de dominio, nunca hechos
+   aislados.** Las interpretaciones auxiliares para decisiones
+   viven en DecisionContext dentro del FinancialState — no como
+   propiedades sueltas (bool profileCompleted, int movementCount).
+   Los conceptos evolucionan juntos. Cada interpretación transporta
+   su evidencia enunciable (principio 3): la regla decide y explica;
+   nunca calcula.
+
 ## Decisiones derivadas
 
 - El perfil entra al Engine como PARÁMETRO de recalculate/process,
@@ -105,6 +113,14 @@ evolución.
   Engine, sin doble significado silencioso.
 - Quincenal deriva el segundo pago (+15 días, saturado a fin de
   mes) desde un único campo — no se almacenan dos payDay.
+- IDs de decisión deterministas (ej. budget_essentials_exceeded):
+  son el contrato del futuro mecanismo de descartes. V3 entrega la
+  infraestructura del criterio "no repetitiva"; la persistencia de
+  descartes es una vertical futura con su propia decisión de
+  producto (¿silenciar para siempre, por período, hasta que cambie
+  el dato?). El filtro queda honestamente en 3 de 4 garantizados.
+- Las reglas nuevas usan formatCurrency desde el primer commit
+  (no crear deuda nueva); las heredadas se corrigen en V4-pulido.
 
 ## Modos de operación (matriz declarado × registrado)
 

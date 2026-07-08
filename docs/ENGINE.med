@@ -1,0 +1,66 @@
+# El Motor de Interpretación Financiera de FlowWise
+
+Una página. Si necesitas más detalle: ADR-0002 (principios del
+Engine), ARCHITECTURE.md (reglas y certificaciones).
+
+## La idea en una frase
+
+FlowWise no registra dinero: interpreta la relación entre el plan
+de una persona y su realidad financiera, y la convierte en
+decisiones accionables.
+
+## Las tres capas del conocimiento
+
+### 1. HECHOS — lo que ocurrió
+Observaciones que nadie interpreta. No dependen del perfil.
+- Movimientos (ingresos, gastos, transferencias)
+- El perfil declarado (monthlyIncome, payFrequency, payDay)
+  — nota: el perfil es un hecho SOBRE el plan, no el plan evaluado
+- Identidad del usuario y cuentas
+
+Fuente de verdad: los movimientos. Las tendencias se derivan de
+ellos al vuelo, nunca se persisten conclusiones (los hechos
+envejecen mejor que las conclusiones).
+
+### 2. INTERPRETACIONES — lo que significa
+Evaluaciones del Engine sobre los hechos, usando contexto.
+- Presupuesto (BudgetState + basis: ¿plan o medición?)
+- Liquidez (¿cuánto puedo gastar hasta que entre dinero?)
+- Proyecciones (ProjectionState: escenarios "al ritmo actual...")
+- Contextos de decisión (DecisionContext: perfil, alineación de
+  ingresos, pago esperado — cada uno con su evidencia enunciable)
+- Salud y momentum
+
+El Engine nunca crea hechos; solo interpreta. Crece verticalmente
+(contexto más rico), nunca horizontalmente (responsabilidades
+nuevas).
+
+### 3. DECISIONES — qué hacer al respecto
+Las DecisionRule leen interpretaciones y producen decisiones con
+acción tipada. Nunca calculan, nunca hacen I/O: el Engine
+interpreta, las reglas deciden.
+
+Filtro de toda decisión: accionable, oportuna, no repetitiva*,
+relevante para el objetivo financiero. (*infraestructura lista
+vía IDs deterministas; mecanismo de descartes pendiente)
+
+## El flujo completo
+
+## Los principios que gobiernan (resumen del ADR-0002)
+
+1. El perfil es el plan; los movimientos son la realidad.
+2. El Engine interpreta la RELACIÓN entre ambos; nunca sustituye.
+3. Toda decisión se explica con datos observables (nunca caja negra).
+4. El Engine no crea hechos; interpreta con contexto.
+5. Solo proyecta hipótesis enunciables ("al ritmo actual...").
+6. El Engine interpreta; las reglas deciden.
+7. Las decisiones se comparan contra el próximo ingreso esperado,
+   no contra el fin del calendario.
+8. Solo modelos de dominio, nunca hechos aislados.
+
+## El tiempo financiero (V2/V2.1)
+
+El horizonte relevante de una persona no es el mes: es su próximo
+ingreso. FlowWise nace para Colombia — mensual, quincenal y
+semanal son de primera clase. El calendario organiza los reportes;
+el flujo de ingresos organiza las decisiones.

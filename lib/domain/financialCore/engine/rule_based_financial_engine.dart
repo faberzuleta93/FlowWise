@@ -1,6 +1,7 @@
 import '../../../domain/repositories/movement_repository.dart';
 import '../../models/financial_state.dart';
 import '../../models/financial_profile.dart';
+import '../../models/financial_movement.dart';
 import '../rules/financial_rules_engine.dart';
 import '../decisions/decision_engine.dart';
 import '../decisions/decision_engine_impl.dart';
@@ -62,16 +63,34 @@ class RuleBasedFinancialEngine implements FinancialEngine {
     final health = _rules.calculateHealth(monthSummary, budget);
     final momentum = _rules.calculateMomentum(monthSummary);
 
+    // Opción A (ADR-0002): la tendencia se deriva de la fuente de
+    // verdad. El Engine (único con repositorio) trae los 3 meses
+    // previos; las reglas solo leen interpretaciones.
+    final previousMonths = <List<FinancialMovement>>[];
+    for (var i = 1; i <= 3; i++) {
+      final target = DateTime(year, month - i);
+      previousMonths.add(
+        await _movementRepository.getByMonth(target.year, target.month),
+      );
+    }
+    final decisionContext = _rules.buildDecisionContext(
+      currentMovements: movements,
+      previousMonthsMovements: previousMonths,
+      profile: profile,
+      projection: projection,
+    );
+
     final partialState = FinancialState(
       month: month,
       year: year,
       monthSummary: monthSummary,
       liquidity: liquidity,
-      projection: projection,
       budget: budget,
       wealth: wealth,
       health: health,
       momentum: momentum,
+      projection: projection,
+      decisionContext: decisionContext,
       obligations: [],
       goals: [],
       recentMovements: movements.take(5).toList(),

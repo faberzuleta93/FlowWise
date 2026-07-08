@@ -8,6 +8,7 @@ import '../../models/financial_health.dart';
 import '../../models/financial_momentum.dart';
 import '../../models/projection_state.dart';
 import '../../models/financial_profile.dart';
+import '../../models/decision_context.dart';
 
 class FinancialRulesEngine {
   MonthSummary calculateMonthSummary(List<FinancialMovement> movements) {
@@ -61,9 +62,6 @@ class FinancialRulesEngine {
     );
   }
 
-// TODO(Sprint4-V2): ingeniería inversa frágil del ingreso
-  // (allocated / 0.50). La V2 de proyecciones reescribe la
-  // liquidez recibiendo el contexto directamente.
   LiquidityState calculateLiquidity(
     List<FinancialMovement> movements,
     BudgetState budget, {
@@ -94,8 +92,8 @@ class FinancialRulesEngine {
   }
 
   /// Proyecciones al ritmo observado (ADR-0002, principio 5).
-  /// Solo proyecta el ingreso con payFrequency == monthly,
-  /// verificado explícitamente — silencio no es soporte.
+  /// Irregular no proyecta ingreso; mensual, quincenal y semanal
+  /// son de primera clase (V2.1, FlowWise nace para Colombia).
   ProjectionState calculateProjection(
     BudgetState budget,
     FinancialProfile? profile,
@@ -108,9 +106,7 @@ class FinancialRulesEngine {
     final dailyRate = daysElapsed > 0 ? totalSpent / daysElapsed : 0.0;
 
     // ADR-0002 principio 7: el horizonte es el próximo ingreso
-    // esperado, no el fin de calendario. Colombia: mensual,
-    // quincenal y semanal son de primera clase; irregular no
-    // proyecta ingreso.
+    // esperado, no el fin de calendario.
     DateTime? nextIncome;
     int? daysUntil;
     if (profile?.payFrequency != null &&
@@ -133,10 +129,122 @@ class FinancialRulesEngine {
     );
   }
 
+  /// Construye los contextos de decisión (ADR-0002 p.6 y p.8).
+  /// [previousMonthsMovements] son los movimientos de los 3 meses
+  /// anteriores completos, provistos por el Engine (opción A:
+  /// la tendencia se deriva de la fuente de verdad, nunca de
+  /// conclusiones persistidas).
+  DecisionContext buildDecisionContext({
+    required List<FinancialMovement> currentMovements,
+    required List<List<FinancialMovement>> previousMonthsMovements,
+    required FinancialProfile? profile,
+    required ProjectionState projection,
+  }) {
+    final now = DateTime.now();
+    return DecisionContext(
+      profile: ProfileContext(
+        completed: profile?.completed ?? false,
+        movementCountThisMonth: currentMovements.length,
+      ),
+      incomeAlignment: _buildIncomeAlignment(
+        previousMonthsMovements,
+        profile?.monthlyIncome,
+      ),
+      expectedIncome: _buildExpectedIncome(
+        currentMovements,
+        profile,
+        now,
+      ),
+    );
+  }
+
+  /// Tendencia declarado vs registrado sobre 3 meses completos.
+  /// Umbral de alineación: ±15% del declarado (evita reportar
+  /// variaciones normales como discrepancia).
+  IncomeAlignmentContext _buildIncomeAlignment(
+    List<List<FinancialMovement>> previousMonths,
+    double? declaredIncome,
+  ) {
+    if (declaredIncome == null || previousMonths.length < 3) {
+      return IncomeAlignmentContext(
+        status: IncomeAlignmentStatus.insufficientHistory,
+        declaredIncome: declaredIncome,
+        monthsObserved: previousMonths.length,
+      );
+    }
+
+    final monthlyIncomes = previousMonths
+        .map((movements) => movements
+            .where((m) => m.type == MovementType.ingreso)
+            .fold(0.0, (sum, m) => sum + m.amount))
+        .toList();
+
+    // Meses sin ingresos registrados no evidencian tendencia.
+    if (monthlyIncomes.any((income) => income <= 0)) {
+      return IncomeAlignmentContext(
+        status: IncomeAlignmentStatus.insufficientHistory,
+        declaredIncome: declaredIncome,
+        monthsObserved: previousMonths.length,
+      );
+    }
+
+    final average =
+        monthlyIncomes.reduce((a, b) => a + b) / monthlyIncomes.length;
+    const tolerance = 0.15;
+    final upper = declaredIncome * (1 + tolerance);
+    final lower = declaredIncome * (1 - tolerance);
+
+    // Sostenida: los TRES meses del mismo lado (tendencia, no foto).
+    final allAbove = monthlyIncomes.every((i) => i > upper);
+    final allBelow = monthlyIncomes.every((i) => i < lower);
+
+    return IncomeAlignmentContext(
+      status: allAbove
+          ? IncomeAlignmentStatus.aboveDeclared
+          : allBelow
+              ? IncomeAlignmentStatus.belowDeclared
+              : IncomeAlignmentStatus.aligned,
+      averageRegistered: average,
+      declaredIncome: declaredIncome,
+      monthsObserved: previousMonths.length,
+    );
+  }
+
+  /// ¿El ingreso esperado más reciente ya fue registrado?
+  ExpectedIncomeContext _buildExpectedIncome(
+    List<FinancialMovement> currentMovements,
+    FinancialProfile? profile,
+    DateTime now,
+  ) {
+    final payDay = profile?.payDay;
+    final frequency = profile?.payFrequency;
+    if (payDay == null ||
+        frequency == null ||
+        frequency == PayFrequency.irregular) {
+      return ExpectedIncomeContext.empty();
+    }
+
+    final lastExpected = _lastExpectedIncomeDate(now, frequency, payDay);
+    if (lastExpected == null) return ExpectedIncomeContext.empty();
+
+    final today = DateTime(now.year, now.month, now.day);
+    final daysSince = today.difference(lastExpected).inDays;
+
+    final registeredSince = currentMovements.any((m) =>
+        m.type == MovementType.ingreso && !m.date.isBefore(lastExpected));
+
+    return ExpectedIncomeContext(
+      lastExpectedDate: lastExpected,
+      daysSinceExpected: daysSince,
+      incomeRegisteredSince: registeredSince,
+    );
+  }
+
+  // ── FECHAS DE INGRESO ────────────────────────────
+
   /// Calcula la fecha del próximo ingreso esperado según la
-  /// frecuencia declarada. Cada frecuencia tiene su propio
-  /// intérprete de payDay (ver doc de FinancialProfile).
-  /// Retorna null si la frecuencia es irregular o no hay payDay.
+  /// frecuencia declarada (ver semántica de payDay en
+  /// FinancialProfile). Null si irregular o sin payDay.
   DateTime? _nextIncomeDate(
     DateTime now,
     PayFrequency frequency,
@@ -164,9 +272,7 @@ class FinancialRulesEngine {
   }
 
   /// payDay = primer pago del mes. El segundo se deriva: 15 días
-  /// después, saturado al último día del mes (nunca cae en el
-  /// mes siguiente). Ej: primaryPayDay=15 → segundo pago=30
-  /// (o 28/29/31 según el mes).
+  /// después, saturado al último día del mes.
   DateTime _nextBiweekly(DateTime now, int primaryPayDay) {
     final lastDayThisMonth = DateTime(now.year, now.month + 1, 0).day;
     final firstPay =
@@ -191,12 +297,47 @@ class FinancialRulesEngine {
     return DateTime(now.year, now.month + 1, nextFirstPay);
   }
 
-  /// payDay = día de la semana en ISO 8601 (1=lunes...7=domingo,
-  /// igual que DateTime.weekday).
+  /// payDay = día de la semana ISO 8601 (1=lunes...7=domingo).
   DateTime _nextWeekly(DateTime now, int weekday) {
     final today = DateTime(now.year, now.month, now.day);
     final daysUntil = (weekday - today.weekday) % 7;
     return today.add(Duration(days: daysUntil));
+  }
+
+  /// Fecha de pago esperada más reciente que ya pasó (o es hoy),
+  /// DENTRO del mes en curso (los meses previos ya se evalúan
+  /// por la tendencia de alineación).
+  DateTime? _lastExpectedIncomeDate(
+    DateTime now,
+    PayFrequency frequency,
+    int payDay,
+  ) {
+    final today = DateTime(now.year, now.month, now.day);
+    final lastDay = DateTime(now.year, now.month + 1, 0).day;
+
+    switch (frequency) {
+      case PayFrequency.monthly:
+        final day = payDay > lastDay ? lastDay : payDay;
+        final date = DateTime(now.year, now.month, day);
+        return date.isAfter(today) ? null : date;
+      case PayFrequency.biweekly:
+        final first = payDay > lastDay ? lastDay : payDay;
+        final secondRaw = first + 15;
+        final second = secondRaw > lastDay ? lastDay : secondRaw;
+        final dates = [
+          DateTime(now.year, now.month, second),
+          DateTime(now.year, now.month, first),
+        ];
+        for (final d in dates) {
+          if (!d.isAfter(today)) return d;
+        }
+        return null;
+      case PayFrequency.weekly:
+        final delta = (today.weekday - payDay) % 7;
+        return today.subtract(Duration(days: delta));
+      case PayFrequency.irregular:
+        return null;
+    }
   }
 
   /// Fecha estimada de agotamiento del bloque AL RITMO PROPIO del

@@ -257,7 +257,31 @@ formulario, pantalla de Movimientos.
   semanal (incluyendo "tu pago es hoy"), mensual (regresión cero),
   irregular (degradación elegante)
   
-### V3 — Decisiones inteligentes → pendiente
+### V3 — Decisiones inteligentes
+**Estado: CERTIFICADA** (con salvedad de entorno)
+
+✔ DecisionContext: contextos por concepto de negocio (Profile,
+  IncomeAlignment, ExpectedIncome), cada uno con conclusión +
+  evidencia enunciable (principios 6 y 8)
+✔ 4 reglas nuevas: ProfileDecisionRule (escalonada 0-5/6-20/>20),
+  ExpectedIncomeDecisionRule (2 días de gracia, desaparición por
+  regeneración), IncomeAlignmentDecisionRule (3 meses ±15%,
+  opción A al vuelo), BlockDepletionDecisionRule (solo si el
+  agotamiento precede al próximo ingreso — principio 7)
+✔ UpdateFinancialProfileAction (switch exhaustivo protegió el mapper)
+✔ formatCurrency desde el primer commit en reglas nuevas
+✔ MomentumDecisionRule: dormida, TODO documenta rediseño de la
+  rama improving antes de despertar (criterio accionable)
+✔ IDs deterministas: infraestructura del criterio "no repetitiva"
+
+**Salvedad:** activación de BlockDepletion certificada manualmente;
+desactivación por reducción de ritmo validada por lógica (historial
+inmutable + fecha del sistema no controlable). Candidata a prueba
+automatizada cuando el Engine tenga Clock inyectable (anotado).
+
+✔ docs/ENGINE.md creado: mapa conceptual hechos → interpretaciones
+  → decisiones
+  
 ### V4 — Pulido de experiencia → pendiente
 
 **Backlog surgido en V1:** movimientos con fecha futura (ingresos
