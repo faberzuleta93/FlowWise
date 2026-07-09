@@ -5,6 +5,7 @@ import '../../core/theme/typography.dart';
 import '../../domain/models/financial_profile.dart';
 import '../../presentation/profile/financial_profile_form_viewmodel.dart';
 import '../../state/financial_profile_notifier.dart';
+import '../../core/utils/thousands_separator_input_formatter.dart';
 
 /// Perfil financiero inicial. Diseño guiado: el usuario puede
 /// completarlo o posponerlo — FlowWise guía, no obliga.
@@ -61,7 +62,7 @@ class _FinancialProfileScreenState extends State<FinancialProfileScreen> {
                   TextField(
                     onChanged: _vm.updateIncome,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    inputFormatters: [ThousandsSeparatorInputFormatter()],
                     style: AppTypography.bodyMedium(),
                     decoration: _inputDecoration('Ej: 3000000'),
                   ),

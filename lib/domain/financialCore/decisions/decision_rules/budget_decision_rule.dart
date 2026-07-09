@@ -1,3 +1,4 @@
+import '../../../../core/utils/formatters.dart';
 import '../../../models/financial_state.dart';
 import '../../../models/financial_decision.dart';
 import '../../../models/budget_state.dart';
@@ -52,7 +53,7 @@ class BudgetDecisionRule implements DecisionRule {
         type: DecisionType.budgetExceeded,
         title: 'Límite superado',
         context: 'Superaste el presupuesto de $blockName '
-            'por \$${block.overage.toStringAsFixed(0)}',
+            'por ${formatCurrency(block.overage)}',
         priority: DecisionPriority.high,
         category: DecisionCategory.budget,
         action: ReviewBudgetAction(

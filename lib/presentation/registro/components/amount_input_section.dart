@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
+import '../../../core/utils/thousands_separator_input_formatter.dart';
 
 class AmountInputSection extends StatefulWidget {
   final double? initialAmount;
@@ -43,11 +43,25 @@ class _AmountInputSectionState extends State<AmountInputSection> {
   @override
   void initState() {
     super.initState();
+    // El valor inicial también se muestra con separadores.
+    final initial = widget.initialAmount;
     _ctrl = TextEditingController(
-      text: widget.initialAmount != null && widget.initialAmount! > 0
-          ? widget.initialAmount!.toStringAsFixed(0)
+      text: initial != null && initial > 0
+          ? _formatInitial(initial.toStringAsFixed(0))
           : '',
     );
+  }
+
+  /// Aplica separadores de miles al valor inicial (mismo formato
+  /// que produce el formatter en vivo).
+  String _formatInitial(String digits) {
+    final buffer = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      final remaining = digits.length - i;
+      buffer.write(digits[i]);
+      if (remaining > 1 && remaining % 3 == 1) buffer.write(',');
+    }
+    return buffer.toString();
   }
 
   @override
@@ -122,7 +136,11 @@ class _AmountInputSectionState extends State<AmountInputSection> {
             ),
           ),
           const SizedBox(height: 8),
-          // Campo de monto
+          // Campo de monto — entero con separador de miles en vivo
+          // (V4 pulido). Decisión de producto: FlowWise nace para
+          // Colombia, el COP no usa decimales en la práctica.
+          // TODO(backlog-multimoneda): soporte de decimales para
+          // monedas extranjeras (USD/EUR) con diseño propio.
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -138,11 +156,9 @@ class _AmountInputSectionState extends State<AmountInputSection> {
                     controller: _ctrl,
                     autofocus: true,
                     textAlign: TextAlign.center,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                      _MaxDecimalsFormatter(),
+                      ThousandsSeparatorInputFormatter(),
                     ],
                     style: AppTypography.display(color: AppColors.accent),
                     decoration: InputDecoration(
@@ -153,7 +169,12 @@ class _AmountInputSectionState extends State<AmountInputSection> {
                       contentPadding: EdgeInsets.zero,
                     ),
                     onChanged: (v) {
-                      final parsed = double.tryParse(v) ?? 0;
+                      // Limpia TODO lo que no sea dígito (robusto
+                      // ante cualquier separador que use el
+                      // formatter): el texto visible es
+                      // presentación, no dato.
+                      final digits = v.replaceAll(RegExp(r'[^\d]'), '');
+                      final parsed = double.tryParse(digits) ?? 0;
                       widget.onAmountChanged(parsed);
                     },
                   ),
@@ -164,21 +185,5 @@ class _AmountInputSectionState extends State<AmountInputSection> {
         ],
       ),
     );
-  }
-}
-
-class _MaxDecimalsFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = newValue.text;
-    if (text.contains('.')) {
-      final parts = text.split('.');
-      if (parts.length > 2) return oldValue;
-      if (parts[1].length > 2) return oldValue;
-    }
-    return newValue;
   }
 }
