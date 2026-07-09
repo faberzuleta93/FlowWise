@@ -1,5 +1,10 @@
 # El Motor de Interpretación Financiera de FlowWise
 
+> Documentos relacionados: [DOMAIN_MAP.md](./DOMAIN_MAP.md) — el
+> Interpretation Engine descrito aquí es uno de tres motores;
+> ver "Los tres motores" en el mapa. [ARCHITECTURE.md](./ARCHITECTURE.md)
+> — reglas y certificaciones.
+
 Una página. Si necesitas más detalle: ADR-0002 (principios del
 Engine), ARCHITECTURE.md (reglas y certificaciones).
 

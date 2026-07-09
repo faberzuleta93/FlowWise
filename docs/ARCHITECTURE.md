@@ -1,5 +1,9 @@
 # FlowWise — Registro de Arquitectura
 
+> Documentos relacionados: [DOMAIN_MAP.md](./DOMAIN_MAP.md) — qué
+> problemas resuelve FlowWise. [ENGINE.md](./ENGINE.md) — cómo
+> piensa el Interpretation Engine.
+
 ## Reglas oficiales
 
 1. **Regla 1** — No se crean capas por simetría. Cada capa debe
@@ -282,7 +286,45 @@ automatizada cuando el Engine tenga Clock inyectable (anotado).
 ✔ docs/ENGINE.md creado: mapa conceptual hechos → interpretaciones
   → decisiones
   
-### V4 — Pulido de experiencia → pendiente
+### V4 — Pulido de experiencia
+**Estado: CERTIFICADA**
+
+✔ ThousandsSeparatorInputFormatter (core/utils, reutilizable):
+  separador de miles en vivo — coma, por decisión del usuario —
+  en monto de movimientos y en ingreso del perfil (deuda de UX
+  del Sprint 2 PAGADA)
+✔ Decisión: campo de monto entero; decimales retirados (COP no
+  los usa) — soporte decimal multimoneda al backlog
+✔ Teclado ya no tapa el formulario de registro (viewInsets en
+  el bottom sheet — deuda del Sprint 2 PAGADA)
+✔ formatCurrency en BudgetDecisionRule (unificado con las nuevas)
+✔ Regresión detectada y corregida en certificación: el parseo
+  del monto limpiaba solo '.' y el formatter usaba ','
+  (mismatch de separador). Corrección: limpieza por regex
+  [^\d] — inmune a cualquier separador futuro.
+
+## Sprint 4 — CERRADO
+
+El Core pasó de describir la realidad a interpretar la relación
+entre plan y realidad:
+- V1: el Engine interpreta el plan (RuleBasedFinancialEngine,
+  BudgetBasis, perfil como parámetro)
+- V2: proyecciones (ProjectionState, horizonte = próximo ingreso)
+- V2.1: frecuencias colombianas (mensual/quincenal/semanal)
+- V3: decisiones inteligentes (DecisionContext, 4 reglas nuevas)
+- V4: pulido de experiencia (separadores, teclado)
+
+ADR-0002 con 8 principios. ENGINE.md como mapa conceptual de
+hechos → interpretaciones → decisiones. Deudas de UX del
+Sprint 2 pagadas en su totalidad.
+
+**Lección de cierre (para el registro):** incluso con auditorías
+exhaustivas, una integración entre dos piezas nuevas (formatter +
+parseo) puede desalinearse en un detalle no cubierto por el
+diseño (qué separador usa cada una). La certificación manual real
+lo encontró en segundos; ninguna cantidad de revisión de código
+lo habría detectado sin ejecutar la app. Refuerza el principio ya
+adoptado: la certificación no es opcional.
 
 **Backlog surgido en V1:** movimientos con fecha futura (ingresos
 anticipados, gastos programados) — requiere auditoría de producto
